@@ -80,11 +80,40 @@ completes.
 
 ## Results
 
-_Full results land here when the run finishes._ Early read on the smallest model
-(`llama-3.2-1b`, full benchmarks): B beats control by **+9 pts on OpenBookQA** and **+4 pts
-on CommonsenseQA**, with the matched placebo sitting *at or below* control (all C-vs-B
-p ≈ 0.000) — i.e. the gain tracks **relevance**, not token count. The effect shrinks on the
-larger 3B model, as predicted. Final numbers across all three models supersede this note.
+Full run: 3 models × 2 benchmarks × 3 arms = **15,489 graded answers** (paired per item),
+0.05% answer-parse failures, salads averaging 36 terms. Accuracy and exact paired McNemar p:
+
+| model | benchmark | n | A (ctrl) | B (salad) | C (placebo) | B−A (p) | B−C (p) | C−A |
+|-------|-----------|---|---------|-----------|-------------|---------|---------|-----|
+| 1B | OpenBookQA    |  500 | .354 | **.444** | .350 | **+.090** (.0000) | **+.094** (.0000) | −.004 |
+| 1B | CommonsenseQA | 1221 | .387 | **.417** | .375 | **+.030** (.0148) | **+.042** (.0006) | −.011 |
+| 3B | OpenBookQA    |  500 | .748 | .768 | .708 | +.020 (.275) | **+.060** (.0016) | −.040 |
+| 3B | CommonsenseQA | 1221 | .736 | .732 | .702 | −.004 (.780) | **+.030** (.0122) | −.034 |
+| 8B | OpenBookQA    |  500 | .774 | .802 | .748 | +.028 (.109) | **+.054** (.0045) | −.026 |
+| 8B | CommonsenseQA | 1221 | .752 | .750 | .712 | −.002 (.944) | **+.038** (.0021) | −.040 |
+
+**Three findings:**
+
+1. **Relevance beats a matched placebo in every cell** (B−C significant, p .0000–.0122). Since
+   C is count- and position-matched to B, the gain is the *content* of the terms — not the extra
+   tokens or shifted position. The confound is ruled out.
+
+2. **Priming beats plain answering (B−A) only for the 1B model** (significant on both benchmarks).
+   At 3B and 8B it is null (p .11–.94). Self-generated keyword priming helps *only the smallest
+   model* — consistent with knowledge augmentation: small models lack the knowledge and the terms
+   supply it; larger models already have it.
+
+3. **Irrelevant priming hurts, and more so with scale** — the placebo sits below control in all six
+   cells (C−A from −.004 at 1B to −.040 at 8B). That is why B−C stays significant even where B−A is
+   null: at 3B/8B the salad is neutral (B ≈ A) but the random words drag accuracy down (C < A).
+
+**Verdict.** The hypothesis — related-term priming "activates relevant pathways" and improves
+answers — holds for *net* benefit **only on the smallest model**. The relevance signal itself is
+real and robust at every scale (related terms always beat random ones), but a measurable gain over
+simply answering exists only where the model is knowledge-limited. For capable models, priming is
+neutral at best, and the *wrong* priming is a real drag.
+
+Raw per-item records, the generated `report.md`, and `summary.json` are in [`results/`](results/).
 
 ## License
 
