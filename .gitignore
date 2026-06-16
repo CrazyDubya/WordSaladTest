@@ -1,0 +1,8 @@
+# experiment outputs — committed separately once the full run completes
+results/
+
+__pycache__/
+*.pyc
+.DS_Store
+.venv/
+venv/
