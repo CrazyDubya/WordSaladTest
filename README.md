@@ -155,6 +155,20 @@ shrinks to neutral. Priming a capable model is neutral at best.
 All per-item records are in [`results/`](results/): `raw.jsonl` (main run), `cross_3b.jsonl` /
 `cross_1b.jsonl` (cross-salad), plus generated `report.md` / `summary.json` / `cross_<tag>_report.md`.
 
+## Creative-writing coda (no ground truth — qualitative)
+
+A subjective companion to the QA runs: does **genre-salad priming** improve the 70B's *short stories*?
+For noir and cosmic horror, the 70B writes one story cold (A) and one primed with ~50 genre-evocative
+terms (B), same seed. There is no objective metric, so judging is a **blind LLM panel** — 3 independent
+judges per genre, shown the pair unlabeled, picking the better / more genre-authentic story.
+
+**Result: 12/12 blind votes for the *unprimed* story**, both genres, both questions. The judges even
+rated the cold versions *more* genre-authentic — despite the primed versions carrying more genre
+vocabulary — because the salad pushed the model to *name* tropes (clichés, abstractions) instead of
+dramatizing a scene. Same lesson as the QA ceiling: priming a capable model is a costume, not a crutch.
+Reproducible generation in [`story.py`](story.py); full writeup, stories, and panel verdict in
+[`results/stories/creative_writing.md`](results/stories/creative_writing.md).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
