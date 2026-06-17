@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pong Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="game-canvas" width="400" height="400"></canvas>
+    <script>
+        let game = {
+            canvas: document.getElementById('game-canvas'),
+            width: 400,
+            height: 400,
+            ball: {
+                x: 200,
+                y: 200,
+                radius: 20,
+                speed: 5,
+                vx: 3,
+                vy: -3
+            },
+            ballSpeeds: {
+                horizontal: 5,
+                vertical: 5
+            },
+            score: 0,
+            player1Score: 0,
+            player2Score: 0,
+            cpuScore: 0,
+            cpuHealth: 100,
+            gameOver: false,
+            input: {
+                x: 200,
+                y: 200,
+                rect: {
+                    left: 200,
+                    top: 200,
+                    width: 20,
+                    height: 20
+                }
+            },
+            inputSpeed: 10,
+            inputInterval: null,
+            inputX: 200,
+            isLeft: true,
+            isRight: true,
+            isJumping: false,
+            isHitting: false,
+            isGameOver: false,
+            isFirstTurn: true,
+            isPong: false,
+            isScore: false
+        };
+        let inputs = document.querySelectorAll('.input');
+        let p1Canvas = document.createElement('canvas');
+        let p2Canvas = document.createElement('canvas');
+        let p2ScoreText = document.createElement('span');
+        let p1ScoreText = document.createElement('span');
+        let cpuCanvas = document.createElement('canvas');
+        let cpuScoreText = document.createElement('span');
+        let scoreText = document.createElement('span');
+        let scoreText2 = document.createElement('span');
+        let resetButton = document.createElement('button');
+        let resetButton2 = document.createElement('button');
+        let resetButton2Text = document.createElement('span');
+
+        function draw() {
+            if (game.gameOver) return;
+            if (game.pong) return;
+
+            let ctx1 = game.canvas.getContext('2d');
+            let ctx2 = game.p2Canvas.getContext('2d');
+            let ctx3 = game.p2ScoreText.getContext('2d');
+            let ctx4 = game.cpuScoreText.getContext('2d');
+            let ctx5 = game.scoreText.getContext('2d');
+            let ctx6 = game.resetButton.getContext('2d');
+
+            ctx1.clearRect(0, 0, game.width, game.height);
+            ctx2.clearRect(0, 0, game.width, game.height);
+            ctx3.clearRect(0, 0, game.width, game.height);
+            ctx4.clearRect(0, 0, game.width, game.height);
+            ctx5.clearRect(0, 0, game.width, game.height);
+            ctx6.clearRect(0, 0, game.width, game.height);
+
+            if (game.pong) {
+                ctx1.fillStyle = 'black';
+                ctx1.fillRect(0, 0, game.width, game.height);
+                ctx1.fillRect(0, game.height, game.width, game.height);
+                ctx1.fillStyle = 'white';
+                ctx1.beginPath();
+                ctx1.arc(game.ball.x, game.ball.y, game.ball.radius, 0, 2 * Math.PI);
+                ctx1.fill();
+
+                ctx2.fillStyle = 'white';
+                ctx2.fillRect(0, 0, game.width, game.height);
+                ctx2.fillStyle = 'black';
+                ctx2.beginPath();
+                ctx2.arc(game.p1.input.x, game.p1.input.y, game.ball.radius, 0, 2 * Math.PI);
+                ctx2.fill();
+
+                ctx3.fillStyle = 'white';
+                ctx3.fillRect(0, 0, game.width, game.height);
+                ctx3.fillStyle = 'black';
+                ctx3.beginPath();
+                ctx3.arc(game.p2.input.x, game.p2.input.y, game.ball.radius, 0, 2 * Math.PI);
+                ctx3.fill();
+
+                ctx4.fillStyle = 'white';
+                ctx4.fillRect(0, 0, game.width, game.height);
+                ctx4.fillStyle = 'black';
+                ctx4.beginPath();
+                ctx4.arc(game.cpu.input.x, game.cpu.input.y, game.ball.radius, 0, 2 * Math.PI);
+                ctx4.fill();
+            } else {
+                ctx1.fillStyle = 'black';
+                ctx1.fillRect(0, 0, game.width, game.height);
+                ctx1.fillStyle = 'white';
+                ctx1.beginPath();
+                ctx1.arc(game.ball.x, game.ball.y, game.ball.radius, 0, 2 * Math.PI);
+                ctx1.fill();
+            }
+
+            ctx1.font = '24px Arial';
+            ctx1.textAlign = 'center';
+            ctx1.textBaseline = 'middle';
+
+            ctx2.fillStyle = 'white';
+            ctx2.fillRect(game.p1.input.x - game.ball.radius, game.p1.input.y - game.ball.radius, game.ball.radius*2, game.ball.radius);
+            ctx2.fillStyle = 'white';
+            ctx2.beginPath();
+            ctx2.arc(game.p1.input.x + game.ball.radius, game.p1.input.y + game.ball.radius, game.ball.radius, 0, 2 * Math.PI);
+            ctx2.fill();
+
+            ctx3.fillStyle = 'white';
+            ctx3.fillRect(game.p2.input.x - game.ball.radius, game.p2.input.y - game.ball.radius, game.ball.radius*2, game.ball.radius);
+            ctx3.fillStyle = 'white';
+            ctx3.beginPath();
+            ctx3.arc(game.p2.input.x + game.ball.radius, game.p2.input.y + game.ball.radius, game.ball.radius, 0, 2 * Math.PI);
+            ctx3.fill();
+
+            ctx4.fillStyle = 'white';
+            ctx4.fillRect(game.cpu.input.x - game.ball.radius, game.cpu.input.y - game.ball.radius, game.ball.radius*2, game.ball.radius);
+            ctx4.fillStyle = 'white';
+            ctx4.beginPath();
+            ctx4.arc(game.cpu.input.x + game.ball.radius, game.cpu.input.y + game.ball.radius, game.ball.radius, 0, 2 * Math.PI);
+            ctx4.fill();
+
+            ctx5.fillStyle = 'white';
+            ctx5.fillRect(0, 0, game.width, game.height);
+            ctx5.fillStyle = 'black';
+            ctx5.font = '24px Arial';
+            ctx5.textAlign = 'left';
+            ctx5.textBaseline = 'top';
+            ctx5.fillText('Score: ' + game.p1Score, 10, 10);
+            ctx5.textAlign = 'right';
+            ctx5.textBaseline = 'top';
+            ctx5.fillText('Score: ' + game.cpuScore, game.width - 10, 10);
+
+            if (game.p1Score > game.cpuScore) {
+                game.p1ScoreText.style.color = 'green';
+            } else if (game.cpuScore > game.p1Score) {
+                game.cpuScoreText.style.color = 'green';
+            } else {
+                game.cpuScoreText.style.color = 'red';
+            }
+
+            if (game.p1Score > 500) {
+                game.p1Score = 500;
+            }
+
+            if (game.cpuScore > 500) {
+                game.cpuScore = 500;
+            }
+
+            if (game.p1Score > game.p2Score) {
+                game.p1ScoreText.style.color = 'green';
+                game.p1Score = 0;
+                game.cpuScore = 0;
+                game.p2Score = 0;
+                game.p2ScoreText.style.color = 'red';
+            } else if (game.cpuScore > game.p2Score) {
+                game.cpuScoreText.style.color = 'green';
+                game.cpuScore = 0;
+                game.p1Score = 0;
+                game.p2Score = 0;
+            } else {
+                game.cpuScoreText.style.color = 'red';
+                game.p1ScoreText.style.color = 'red';
+            }
+
+            if (game.p1Score > 3) {
+                game.p1Score = 3;
+                game.p1ScoreText.style.color = 'green';
+                game.cpuScore = 0;
+                game.cpuScoreText.style.color = 'black';
+            } else if (game.cpuScore > 3) {
+                game.cpuScoreText.style.color = 'green';
+                game.cpuScore = 0;
+                game.p1Score = 0;
+                game.p2Score = 0;
+            } else {
+                game.cpuScoreText.style.color = 'red';
+                game.p1ScoreText.style.color = 'red';
+            }
+
+            if (game.p1Score > 1 && game.p2Score === 0) {
+                game.p1Score -= 1;
+                game.p1ScoreText.style.color = 'green';
+            } else if (game.cpuScore > 1 && game.p2Score === 0) {
+                game.cpuScore -= 1;
+                game.cpuScoreText.style.color = 'green';
+            } else if (game.p1Score > 1 && game.cpuScore === 0) {
+                game.p1Score -= 1;
+                game.p1ScoreText.style.color = 'red';
+            } else if (game.cpuScore > 1 && game.p2Score === 0) {
+                game.cpuScore -= 1;
+                game.cpuScoreText.style.color = 'red';
+            }
+
+            if (game.p1Score === 1) {
+                game.p1ScoreText.style.color = 'green';
+                resetButton.textContent = 'Restart';
+            } else if (game.cpuScore === 1) {
+                game.cpuScoreText.style.color = 'green';
+                resetButton.textContent = 'Restart';
+            } else {
+                game.resetButton.textContent = 'Restart';
+            }
+
+            game.p1Input.addEventListener('mousedown', moveInput);
+            game.p2Input.addEventListener('mousedown', moveInput);
+            game.cpuInput.addEventListener('mousedown', moveInput);
+
+            function moveInput(event) {
+                if (game.isFirstTurn) {
+                    if (event.clientX >= game.input.x + game.ball.x && event.clientX <= game.input.x + game.ball.x + game.ball.radius*2 && event.clientY >= game.input.y + game.ball.y && event.clientY <= game.input.y + game.ball.y + game.ball.radius*2) {
+                        game.p1Input.x = event.clientX;
+                        game.p1Input.y = event.clientY;
+                        game.isFirstTurn = false;
+                        game.p1Score += 1;
+                        game.p1InputInterval = setInterval(() => {
+                            game.moveBall();
+                        }, 16);
+                        game.p1InputInterval2 = setInterval(() => {
+                            game.moveBall();
+                        }, 16);
+                    }
+                } else if (event.clientY >= game.input.y - game.ball.y && event.clientY <= game.input.y + game.ball.y + game.ball.radius*2 && event.clientX >= game.input.x + game.ball.x && event.clientX <= game.input.x + game.ball.x + game.ball.radius*2) {
+                    game.p2Input.y = event.clientY;
+                    game.p2Input.x = event.clientX;
+                    game.isFirstTurn = true;
+                    game.p2Score += 1;
+                    game.p2InputInterval = setInterval(() => {
+                        game.moveBall();
+                    }, 16);
+                    game.p2InputInterval2 = setInterval(() => {
+                        game.moveBall();
+                    }, 16);
+                }
+            }
+
+            function moveBall() {
+                if (game.p1Input.x < game.input.x + game.ball.x && game.p1Input.y > game.input.y - game.ball.y && game.p1Input.y < game.input.y + game.ball.y && game.p1Input.x > game.input.x) {
+                    game.ball.x += game.p1Speed;
+                    game.p1Input.x = game.input.x;
+                } else if (game.p1Input.x > game.input.x + game.ball.x && game.p1Input.y > game.input.y - game.ball.y && game.p1Input.y < game.input.y + game.ball.y && game.p1Input.x < game.input.x) {
+                    game.ball.x -= game.p1Speed;
+                    game.p1Input.x = game.input.x;
+                }
+
+                if (game.p2Input.x < game.input.x + game.ball.x && game.p2Input.y > game.input.y - game.ball.y && game.p2Input.y < game.input.y + game.ball.y && game.p2Input.x > game.input.x) {
+                    game.ball.x += game.p2Speed;
+                    game.p2Input.x = game.input.x;
+                } else if (game.p2Input.x > game.input.x + game.ball.x && game.p2Input.y > game.input.y - game.ball.y && game.p2Input.y < game.input.y + game.ball.y && game.p2Input.x < game.input.x) {
+                    game.ball.x -= game.p2Speed;
+                    game.p2Input.x = game.input.x;
+                }
+
+                game.ball.x = game.p1Input.x + game.ball.radius;
+                game.ball.y = game.p1Input.y + game.ball.radius;
+            }
+
+            inputs.forEach(input => {
+                input.addEventListener('mousedown', () => {
+                    if (game.isLeft) {
+                        game.p1Input.x = input.x;
+                        game.p1Input.y = input.y;
+                        game.isLeft = true;
+                    } else {
+                        game.p2Input.x = input.x;
+                        game.p2Input.y = input.y;
+                        game.isRight = true;
+                    }
+                });
+            });
+
+            let intervalId = setInterval(() => {
+                if (game.p1Health > 0) {
+                    if (game.p1Health > 1) {
+                        game.p1Health -= 1;
+                        game.p1ScoreText.style.color = 'white';
+                        game.p1ScoreText.textContent = game.p1Score;
+                    } else {
+                        game.p1Health = 0;
+                        game.p1ScoreText.style.color = 'white';
+                        game.p1ScoreText.textContent = 'Game Over';
+                        game.gameOver = true;
+                        clearInterval(intervalId);
+                        clearInterval(game.inputInputInterval);
+                        clearInterval(game.inputInputInterval2);
+                        game.inputInputInterval = null;
+                        game.inputInputInterval2 = null;
+                    }
+                } else {
+                    game.p1Health = game.p1Health + 1;
+                    game.p1ScoreText.style.color = 'white';
+                    game.p1ScoreText.textContent = game.p1Score;
+                    if (game.p1Health > 0) {
+                        game.p1Health--;
+                        game.p1ScoreText.style.color = 'white';
+                        game.p1ScoreText.textContent = game.p1Score;
+                    }
+                }
+                if (game.cpuHealth > 0) {
+                    if (game.cpuHealth > 1) {
+                        game.cpuHealth -= 1;
+                        game.cpuScoreText.style.color = 'white';
+                        game.cpuScoreText.textContent = game.cpuScore;
+                    } else {
+                        game.cpuHealth = 0;
+                        game.cpuScoreText.style.color = 'white';
+                        game.cpuScoreText.textContent = 'Game Over';
+                        game.gameOver = true;
+                        clearInterval(intervalId);
+                        clearInterval(game.inputInputInterval);
+                        clearInterval(game.inputInputInterval2);
+                        game.inputInputInterval = null;
+                        game.inputInputInterval2 = null;
+                    }
+                } else {
+                    game.cpuHealth = game.cpuHealth + 1;
+                    game.cpuScoreText.style.color = 'white';
+                    game.cpuScoreText.textContent = game.cpuScore;
+                    if (game.cpuHealth > 0) {
+                        game.cpuHealth--;
+                        game.cpuScoreText.style.color = 'white';
+                        game.cpuScoreText.textContent = game.cpuScore;
+                    }
+                }
+
+                if (game.cpuHealth <= 0) {
+                    clearInterval(intervalId);
+                    clearInterval(game.inputInputInterval);
+                    clearInterval(game.inputInputInterval2);
+                    game.inputInputInterval = null;
+                    game.inputInputInterval2 = null;
+                    game.gameOver = true;
+                    game.resetButton.textContent = 'Restart';
+                }
+                if (game.cpuHealth <= 0) {
+                    clearInterval(intervalId);
+                    clearInterval(game.inputInputInterval);
+                    clearInterval(game.inputInputInterval2);
+                    game.inputInputInterval = null;
+                    game.inputInputInterval2 = null;
+                    game.p1ScoreText.style.color = 'white';
+                    game.p1ScoreText.textContent = game.p1Score;
+                    game.gameOver = true;
+                    game.resetButton.textContent = 'Restart';
+                }
+            });
+
+            resetButton.addEventListener('click', () => {
+                game.gameOver = false;
+                game.p1Score = 0;
+                game.cpuScore = 0;
+                game.p1Input.x = 200;
+                game.p1Input.y = 200;
+                game.p2Input.x = 200;
+                game.p2Input.y = 200;
+                game.p1InputInterval = null;
+                game.p1InputInterval2 = null;
+                game.p2InputInterval = null;
+                game.p2InputInterval2 = null;
+            });
+
+            resetButton2.addEventListener('click', () => {
+                game.gameOver = false;
+                game.p1Score = 0;
+                game.cpuScore = 0;
+                game.p1Input.x = 200;
+                game.p1Input.y = 200;
+                game.p2Input.x = 200;
+                game.p2Input.y = 200;
+                game.p1InputInterval = null;
+                game.p1InputInterval2 = null;
+                game.p2InputInterval = null;
+                game.p2InputInterval2 = null;
+            });
+
+            let canvas = document.createElement('canvas');
+            canvas.id = 'p2Canvas';
+            document.body.appendChild(canvas);
+            p2Canvas.width = 400;
+            p2Canvas.height = 400;
+            p2Canvas.getContext('2d').fillStyle = 'black';
+            p2Canvas.getContext('2d').drawRect(0, 0, 400, 400);
+            p2Canvas.getContext('2d').fillStyle = 'white';
+            p2Canvas.getContext('2d').drawRect(0, 0, 400, 400);
+            p2ScoreText = document.createElement('span');
+            p2ScoreText.id = 'p2ScoreText';
+            p2ScoreText.textContent = 0;
+            p2ScoreText.style.color = 'black';
+            p2ScoreText.style.position = 'absolute';
+            p2ScoreText.style.top = '20px';
+            p2ScoreText.style.left = '20px';
+            document.body.appendChild(p2ScoreText);
+            p2ScoreText.addEventListener('mousedown', () => {
+                game.p2Input.x = 200;
+                game.p2Input.y = 200;
+                game.isRight = true;
+            });
+
+            let intervalId = setInterval(() => {
+                if (game.p2Health > 0) {
+                    if (game.p2Health > 1) {
+                        game.p2Health -= 1;
+                        game.p2ScoreText.textContent = game.p2Score;
+                        if (game.p2Health > 0) {
+                            game.p2Health--;
+                            game.p2ScoreText.style.color = 'white';
+                            game.p2ScoreText.textContent = game.p2Score;
+                        }
+                    } else {
+                        game.p2Health = 0;
+                        game.p2ScoreText.style.color = 'white';
+                        game.p2ScoreText.textContent = 'Game Over';
+                        game.gameOver = true;
+                        clearInterval(intervalId);
+                        clearInterval(game.inputInputInterval);
+                        clearInterval(game.inputInputInterval2);
+                        game.inputInputInterval = null;
+                        game.inputInputInterval2 = null;
+                        p2ScoreText.style.color = 'white';
+                        p2ScoreText.textContent = 0;
+                        p2ScoreText.style.position = 'absolute';
+                        p2ScoreText.style.left = '20px';
+                        p2ScoreText.style.top = '20px';
+                        p2ScoreText.style.color = 'black';
+                        document.body.appendChild(p2ScoreText);
+                        p2ScoreText.addEventListener('mousedown', () => {
+                            game.p2Input.x = 200;
+                            game.p2Input.y = 200;
+                            game.isRight = true;
+                        });
+                    }
+                } else {
+                    game.p2Health = game.p2Health + 1;
+                    game.p2ScoreText.textContent = game.p2Score;
+                    if (game.p2Health > 0) {
+                        game.p2Health--;
+                        game.p2ScoreText.style.color = 'white';
+                        game.p2ScoreText.textContent = game.p2Score;
+                    }
+                }
+                if (game.p2Health <= 0) {
+                    clearInterval(intervalId);
+                    clearInterval(game.inputInputInterval);
+                    clearInterval(game.inputInputInterval2);
+                    game.inputInputInterval = null;
+                    game.inputInputInterval2 = null;
+                    game.p1ScoreText.style.color = 'white';
+                    game.p1ScoreText.textContent = game.p1Score;
+                    game.gameOver = true;
+                    game.resetButton.textContent = 'Restart';
+                    document.body.appendChild(game.p2ScoreText);
+                    game.p2ScoreText.style.position = 'absolute';
+                    game.p2ScoreText.style.left = '20px';
+                    game.p2ScoreText.style.top = '20px';
+                    game.p2ScoreText.style.color = 'black';
+                    document.body.appendChild(game.p2ScoreText);
+                    game.p1ScoreText.style.position = 'absolute';
+                    game.p1ScoreText.style.left = '20px';
+                    game.p1ScoreText.style.top = '20px';
+                    game.p1ScoreText.style.color = 'black';
+                    document.body.appendChild(game.p1ScoreText);
+                    game.resetButton.textContent = 'Restart';
+                }
+            });
+
+            document.body.appendChild(p1ScoreText);
+            game.resetButton.textContent = 'Restart';
+            document.body.appendChild(p2ScoreText);
+            game.resetButton2.textContent = 'Restart';
+        });
+
+        function reset() {
+            game.gameOver = false;
+            game.p1Score = 0;
+            game.cpuScore = 0;
+            game.p1Input.x = 200;
+            game.p1Input.y = 200;
+            game.p2Input.x = 200;
+            game.p2Input.y = 200;
+            game.p1InputInterval = null;
+            game.p1InputInterval2 = null;
+            game.p2InputInterval = null;
+            game.p2InputInterval2 = null;
+            game.inputInputInterval = null;
+            game.inputInputInterval2 = null;
+            game.p2ScoreText.textContent = 0;
+            document.body.appendChild(p2ScoreText);
+            game.p1ScoreText.textContent = 0;
+            document.body.appendChild(p1ScoreText);
+            game.resetButton.textContent = 'Restart';
+            game.resetButton2.textContent = 'Restart';
+        }
+
+        inputs.forEach(input => {
+            input.addEventListener('mousedown', () => {
+                if (game.isLeft) {
+                    game.p1Input.x = input.x;
+                    game.p1Input.y = input.y;
+                    game.isLeft = true;
+                } else {
+                    game.p2Input.x = input.x;
+                    game.p2Input.y = input.y;
+                    game.isRight = true;
+                }
+            });
+        });
+
+        let event = new Date();
+        let current = new Date();
+        let diff = event.getTime() - current.getTime();
+        let milliseconds = Math.floor(diff / 1000);
+
+        game.inputInputInterval = setInterval(() => {
+            if (game.p1Health > 0) {
+                if (game.p1Health > 1) {
+                    game.p1Health -= 1;
+                    game.p1ScoreText.textContent = game.p1Score;
+                    if (game.p1Health > 0) {
+                        game.p1Health--;
+                        game.p1ScoreText.style.color = 'white';
+                        game.p1ScoreText.textContent = game.p1Score;
+                    }
+                } else {
+                    game.p1Health = 0;
+                    game.p1ScoreText.style.color = 'white';
+                    game.p1ScoreText.textContent = 'Game Over';
+                    game.gameOver = true;
+                    clearInterval(game.inputInputInterval);
+                    clearInterval(game.inputInputInterval2);
+                    game.inputInputInterval = null;
+                    game.inputInputInterval2 = null;
+                    p1ScoreText.style.color = 'white';
+                    p1ScoreText.textContent = 0;
+                    p1ScoreText.style.position = 'absolute';
+                    p1ScoreText.style.left = '20px';
+                    p1ScoreText.style.top = '20px';
+                    p1ScoreText.style.color = 'black';
+                    document.body.appendChild(p1ScoreText);
+                    p1ScoreText.addEventListener('mousedown', () => {
+                        game.p1Input.x = 200;
+                        game.p1Input.y = 200;
+                        game.isLeft = true;
+                    });
+                }
+            } else {
+                game.p1Health = game.p1Health + 1;
+                game.p1ScoreText.textContent = game.p1Score;
+                if (game.p1Health > 0) {
+                    game.p1Health--;
+                    game.p1ScoreText.style.color = 'white';
+                    game.p1ScoreText.textContent = game.p1Score;
+                }
+            }
+            if (game.p2Health > 0) {
+                if (game.p2Health > 1) {
+                    game.p2Health -= 1;
+                    game.p2ScoreText.textContent = game.p2Score;
+                    if (game.p2Health > 0) {
+                        game.p2Health--;
+                        game.p2ScoreText.style.color = 'white';
+                        game.p2ScoreText.textContent = game.p2Score;
+                    }
+                } else {
+                    game.p2Health = 0;
+                    game.p2ScoreText.style.color = 'white';
+                    game.p2ScoreText.textContent = 'Game Over';
+                    game.gameOver = true;
+                    clearInterval(game.inputInputInterval);
+                    clearInterval(game.inputInputInterval2);
+                    game.inputInputInterval = null;
+                    game.inputInputInterval2 = null;
+                    p2ScoreText.style.color = 'white';
+                    p2ScoreText.textContent = 0;
+                    p2ScoreText.style.position = 'absolute';
+                    p2ScoreText.style.left = '20px';
+                    p2ScoreText.style.top = '20px';
+                    p2ScoreText.style.color = 'black';
+                    document.body.appendChild(p2ScoreText);
+                    p2ScoreText.addEventListener('mousedown', () => {
+                        game.p2Input.x = 200;
+                        game.p2Input.y = 200;
+                        game.isRight = true;
+                    });
+                }
+            } else {
+                game.p2Health = game.p2Health + 1;
+                game.p2ScoreText.textContent = game.p2Score;
+                if (game.p2Health > 0) {
+                    game.p2Health--;
+                    game.p2ScoreText.style.color = 'white';
+                    game.p2ScoreText.textContent = game.p2Score;
+                }
+            }
+            if (game.p2Health <= 0) {
+                clearInterval(game.inputInputInterval);
+                clearInterval(game.inputInputInterval2);
+                game.inputInputInterval = null;
+                game.inputInputInterval2 = null;
+                game.p1ScoreText.style.color = 'white';
+                game.p1ScoreText.textContent = game.p1Score;
+                game.gameOver = true;
+                game.resetButton.textContent = 'Restart';
+                document.body.appendChild(game.p1ScoreText);
+                game.p1ScoreText.style.position = 'absolute';
+                game.p1ScoreText.style.left = '20px';
+                game.p1ScoreText.style.top = '20px';
+                game.p1ScoreText.style.color = 'black';
+                document.body.appendChild(game.p1ScoreText);
+                game.resetButton.textContent = 'Restart';
+            }
+        });
+    </script>
+</body>
+</html>

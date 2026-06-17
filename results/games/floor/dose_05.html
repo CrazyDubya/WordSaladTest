@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pong Game</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    #game-container {
+      width: 640px;
+      height: 480px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      margin: 40px auto;
+      position: relative;
+    }
+    #game-container canvas {
+      border: none;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game-container" width="640" height="480"></canvas>
+  <div id="score">Score: <span id="score1">0</span> - <span id="score2">0</span></div>
+  <script>
+    let ball = {
+      x: 320,
+      y: 240,
+      vx: 4,
+      vy: 4,
+      radius: 20,
+      color: 'black',
+      diameter: 20,
+      ballColor: 'white',
+    };
+    let paddle1 = {
+      x: 10,
+      y: 10,
+      width: 10,
+      height: 80,
+      color: 'black',
+      diameter: 20,
+    };
+    let paddle2 = {
+      x: 590,
+      y: 10,
+      width: 10,
+      height: 80,
+      color: 'black',
+      diameter: 20,
+    };
+    let ballDirection = {
+      x: 1,
+      y: -1,
+    };
+    let score1 = 0;
+    let score2 = 0;
+    let gameRunning = false;
+    let intervalId = null;
+    let paddle1IntervalId = null;
+    let paddle2IntervalId = null;
+    let ballIntervalId = null;
+
+    function createCanvas() {
+      document.getElementById('game-container').innerHTML = '<canvas width="640" height="480" id="game-container"></canvas>';
+      document.getElementById("score").innerHTML = 'Score: <span id="score1">0</span> - <span id="score2">0</span>';
+    }
+
+    function update() {
+      if (gameRunning) {
+        let ballX = ball.x + ball.vx;
+        let ballY = ball.y + ball.vy;
+
+        // Collision with top and bottom
+        if (ball.y + ball.vy > 480 || ball.y < 0) {
+          ball.vy *= -1;
+        }
+
+        // Collision with left and right
+        if (ballX + ball.radius > paddle1.x + paddle1.width && ballX < paddle1.x + paddle1.width) {
+          ball.x = paddle1.x + paddle1.width / 2;
+          ball.vx *= -1;
+        } else if (ballX + ball.radius < paddle2.x + paddle2.width && ballX > paddle2.x - paddle2.width) {
+          ball.x = paddle2.x - paddle2.width / 2;
+          ball.vx *= -1;
+        }
+
+        // Collision with center
+        if (ballX + ball.radius > paddle1.x && ballX < paddle1.x + paddle1.width && ball.y > paddle1.y - ball.radius && ball.y < paddle1.y + paddle1.height) {
+          ball.vy *= -1;
+        }
+
+        if (ballX + ball.radius > paddle2.x && ballX < paddle2.x + paddle2.width && ball.y > paddle2.y - ball.radius && ball.y < paddle2.y + paddle2.height) {
+          ball.vy *= -1;
+        }
+
+        ball.x += ballDirection.x;
+        ball.y += ballDirection.y;
+
+        document.getElementById("score1").innerHTML = "Score: " + score1;
+        document.getElementById("score2").innerHTML = "Score: " + score2;
+      }
+    }
+
+    function draw() {
+      let ctx = document.getElementById('game-container').getContext('2d');
+      ctx.clearRect(0, 0, 640, 480);
+      ctx.beginPath();
+      ctx.rect(0, 0, 640, 480);
+      ctx.fillStyle = '#ff0000';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.rect(10, 10, 10, 80);
+      ctx.fillStyle = ballColor;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, 2 * Math.PI);
+      ctx.fillStyle = ballColor;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.rect(paddle1.x, paddle1.y, 10, 80);
+      ctx.fillStyle = paddleColor;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.rect(paddle2.x, paddle2.y, 10, 80);
+      ctx.fillStyle = paddleColor;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.rect(10, 10, ball.radius, ball.radius);
+      ctx.fillStyle = ballColor;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.rect(590, 10, ball.radius, ball.radius);
+      ctx.fillStyle = ballColor;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.rect(10, 480, paddle1.width, ball.radius);
+      ctx.fillStyle = paddleColor;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.rect(590, 480, paddle2.width, ball.radius);
+      ctx.fillStyle = paddleColor;
+      ctx.fill();
+    }
+
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'ArrowRight' && paddle1.x < 640) {
+        paddle1.x += 10;
+      } else if (event.key === 'ArrowLeft' && paddle1.x > 10) {
+        paddle1.x -= 10;
+      }
+      if (event.key === 'ArrowUp' && paddle2.x > 10) {
+        paddle2.x -= 10;
+      } else if (event.key === 'ArrowDown' && paddle2.x < 590) {
+        paddle2.x += 10;
+      }
+    });
+
+    createCanvas();
+
+    intervalId = setInterval(update, 1000 / 60);
+    paddle1IntervalId = setInterval(function() {
+      paddle1.x += ballDirection.x;
+      if (paddle1.x > 640) {
+        paddle1.x = 0;
+      }
+    }, 1000 / 60);
+    paddle2IntervalId = setInterval(function() {
+      paddle2.x += ballDirection.x;
+      if (paddle2.x > 640) {
+        paddle2.x = 0;
+      }
+    }, 1000 / 60);
+
+    ballDirection.x *= -1;
+    ballDirection.y *= -1;
+
+    gameRunning = true;
+    score1 = 0;
+    score2 = 0;
+  </script>
+</body>
+</html>

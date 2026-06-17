@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Pong Game</title>
+	<style>
+		/* Global Styles */
+		body {
+			background-color: #f0f0f0;
+		}
+		
+		/* Pong Game Styles */
+		#game-container {
+			width: 800px;
+			margin: 40px auto;
+			background-color: #333;
+			border: 1px solid #777;
+			padding: 20px;
+			border-radius: 10px;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+		}
+		
+		/* Game Elements */
+		#score-1 {
+			font-size: 24px;
+			margin-bottom: 20px;
+		}
+		
+		#score-2 {
+			font-size: 24px;
+			margin-bottom: 20px;
+		}
+		
+		#score-3 {
+			font-size: 24px;
+			margin-bottom: 20px;
+		}
+		
+		#high-score-1 {
+			font-size: 24px;
+			margin-bottom: 20px;
+		}
+		
+		#high-score-2 {
+			font-size: 24px;
+			margin-bottom: 20px;
+		}
+		
+		#high-score-3 {
+			font-size: 24px;
+			margin-bottom: 20px;
+		}
+		
+		#reset-button {
+			margin-top: 20px;
+			background-color: #4CAF50;
+			color: #fff;
+			padding: 10px 20px;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+		}
+		
+		#reset-button:hover {
+			background-color: #3e8e41;
+		}
+		
+		/* Game Controls */
+		#controls {
+			margin-top: 20px;
+			text-align: center;
+		}
+		
+		#controls input[type="text"] {
+			width: 50%;
+			height: 30px;
+			margin-bottom: 10px;
+			padding: 10px;
+			border: 1px solid #777;
+		}
+		
+		#controls button {
+			width: 20%;
+			height: 30px;
+			margin: 10px auto;
+			padding: 10px;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+		}
+		
+		#controls button:hover {
+			background-color: #4CAF50;
+		}
+	</style>
+</head>
+<body>
+	<div id="game-container">
+		<div id="score-1">Score 1: <span id="high-score-1">0</span></div>
+		<div id="score-2">Score 2: <span id="high-score-2">0</span></div>
+		<div id="score-3">Score 3: <span id="high-score-3">0</span></div>
+		
+		<div id="high-score-1">High Score 1: <span id="high-score-1">0</span></div>
+		<div id="high-score-2">High Score 2: <span id="high-score-2">0</span></div>
+		<div id="high-score-3">High Score 3: <span id="high-score-3">0</span></div>
+		
+		<input type="text" id="score-1" placeholder="Enter high score 1" onkeyup="updateHighScore(1)">
+		<input type="text" id="score-2" placeholder="Enter high score 2" onkeyup="updateHighScore(2)">
+		<input type="text" id="score-3" placeholder="Enter high score 3" onkeyup="updateHighScore(3)">
+		
+		<button id="reset-button">Reset Game</button>
+		
+		<div id="controls">
+			<input type="text" id="high-score-input" placeholder="Enter high score" onkeyup="updateHighScore(4)">
+			<button id="reset-input">Reset Game</button>
+			<button id="quit-button">Quit Game</button>
+			<button id="play-button">Play Game</button>
+		</div>
+		
+		 canvas id="game-canvas" width="400" height="400"></canvas>
+		
+		<script>
+			const ctx = document.getElementById('game-canvas').getContext('2d');
+			let highScore = 0;
+			let score1 = 0;
+			let score2 = 0;
+			let score3 = 0;
+			let highScore1 = 0;
+			let highScore2 = 0;
+			let highScore3 = 0;
+			let highScore4 = 0;
+			let gameOver = false;
+			let score1Interval = null;
+			let score2Interval = null;
+			let score3Interval = null;
+			let score4Interval = null;
+			let highScore1Interval = null;
+			let highScore2Interval = null;
+			let highScore3Interval = null;
+			let highScore4Interval = null;
+			let highScore4Interval = null;
+			let score1Interval = null;
+			let score2Interval = null;
+			let score3Interval = null;
+			let score4Interval = null;
+			let highScore1Interval = null;
+			let highScore2Interval = null;
+			let highScore3Interval = null;
+			let highScore4Interval = null;
+			let highScore4Interval = null;
+			
+			let player1X = 50;
+			let player2X = 150;
+			let player1Y = 50;
+			let player2Y = 150;
+			
+			let player1Speed = 2;
+			let player2Speed = 2;
+			
+			let gameOverInterval = null;
+			let score1Interval = null;
+			let score2Interval = null;
+			let score3Interval = null;
+			let score4Interval = null;
+			let highScore1Interval = null;
+			let highScore2Interval = null;
+			let highScore3Interval = null;
+			let highScore4Interval = null;
+			let highScore4Interval = null;
+			
+			function updateHighScore(index) {
+				if (index === 1) {
+					playersScore[index] = score1;
+				} else if (index === 2) {
+					playersScore[index] = score2;
+				} else if (index === 3) {
+					playersScore[index] = score3;
+				} else {
+					playersScore[index] = score4;
+				}
+				document.getElementById(index + '1').innerHTML = playersScore[index];
+				document.getElementById(index + '2').innerHTML = playersScore[index];
+				document.getElementById(index + '3').innerHTML = playersScore[index];
+			}
+			
+			function resetGame() {
+				score1 = 0;
+				score2 = 0;
+				score3 = 0;
+				score4 = 0;
+				highScore1 = 0;
+				highScore2 = 0;
+				highScore3 = 0;
+				highScore4 = 0;
+				score1Interval = null;
+				score2Interval = null;
+				score3Interval = null;
+				score4Interval = null;
+				highScore1Interval = null;
+				highScore2Interval = null;
+				highScore3Interval = null;
+				highScore4Interval = null;
+				score1Interval = null;
+				score2Interval = null;
+				score3Interval = null;
+				score4Interval = null;
+				highScore1Interval = null;
+				highScore2Interval = null;
+				highScore3Interval = null;
+				highScore4Interval = null;
+				score1Interval = null;
+				score2Interval = null;
+				score3Interval = null;
+				score4Interval = null;
+				highScore4Interval = null;
+				player1X = 50;
+				player2X = 150;
+				player1Y = 50;
+				player2Y = 150;
+				player1Speed = 2;
+				player2Speed = 2;
+				gameOverInterval = null;
+				score1Interval = null;
+				score2Interval = null;
+				score3Interval = null;
+				score4Interval = null;
+				highScore1Interval = null;
+				highScore2Interval = null;
+				highScore3Interval = null;
+				highScore4Interval = null;
+				highScore4Interval = null;
+				
+				updateHighScore(1);
+			}
+			
+			function updateScore1(index, score) {
+				score1 = score;
+				document.getElementById('score-1').innerHTML = score;
+				document.getElementById('high-score-1').innerHTML = playersScore[1];
+			}
+			
+			function updateScore2(index, score) {
+				score2 = score;
+				document.getElementById('score-2').innerHTML = score;
+				document.getElementById('high-score-2').innerHTML = playersScore[2];
+			}
+			
+			function updateScore3(index, score) {
+				score3 = score;
+				document.getElementById('score-3').innerHTML = score;
+				document.getElementById('high-score-3').innerHTML = playersScore[3];
+			}
+			
+			function updateScore4(index, score) {
+				score4 = score;
+				document.getElementById('score-4').innerHTML = score;
+				document.getElementById('high-score-4').innerHTML = playersScore[4];
+			}
+			
+			function updateHighScore4(index) {
+				playersScore[4] = score4;
+				document.getElementById(index + '4').innerHTML = playersScore[4];
+				document.getElementById('high-score-4').innerHTML = playersScore[4];
+			}
+			
+			// Player Movement
+			function updatePlayer1() {
+				if (gameOverInterval !== null) {
+					return;
+				}
+				if (score1 > 0 && player1X < 390) {
+					player1X += player1Speed;
+				} else if (score1 < 0) {
+					player1X = 390;
+				}
+				if (score1 < 1000) {
+					if (score1 > 0) {
+						player1Y -= 10;
+					} else {
+						if (score1 === 0) {
+							if (score2 > 0) {
+								player2Y -= 10;
+							} else {
+								if (score2 === 0) {
+									if (score3 > 0) {
+										player3Y -= 10;
+									} else {
+										if (score3 === 0) {
+											if (score4 > 0) {
+												player4Y -= 10;
+											} else {
+												if (score4 === 0) {
+													if (score1 > 0) {
+														player1Y -= 10;
+													} else {
+														if (score1 === 0) {
+															if (score2 > 0) {
+																player2Y -= 10;
+															if (score2 === 0) {
+																if (score3 > 0) {
+																	player3Y -= 10;
+																if (score3 === 0) {
+																	if (score4 > 0) {
+																		player4Y -= 10;
+																		if (score4 === 0) {
+																			// Game Over
+						} else {
+							score1 = 1000;
+							score2 = 500;
+							score3 = 200;
+							score4 = 100;
+							score1Interval = setInterval(updateScore1, 100);
+							score2Interval = setInterval(updateScore2, 100);
+							score3Interval = setInterval(updateScore3, 100);
+							score4Interval = setInterval(updateScore4, 100);
+							updateHighScore4(4);
+						}
+						}
+					}
+				}
+				if (score1 < 1000) {
+					if (score1 > 0) {
+						player1Y += 10;
+					} else {
+						if (score1 === 0) {
+							if (score2 > 0) {
+								player2Y -= 10;
+							} else {
+								if (score2 === 0) {
+									if (score3 > 0) {
+										player3Y -= 10;
+									} else {
+										if (score3 === 0) {
+											if (score4 > 0) {
+												player4Y -= 10;
+											} else {
+												if (score4 === 0) {
+													if (score1 > 0) {
+														player1Y -= 10;
+													} else {
+														if (score1 === 0) {
+															if (score2 > 0) {
+																player2Y -= 10;
+																if (score2 === 0) {
+																	player3Y -= 10;
+																	if (score3 === 0) {
+																	// Game Over
+						} else {
+							score1 = 1000;
+							score2 = 500;
+							score3 = 200;
+							score4 = 100;
+							score1Interval = setInterval(updateScore1, 100);
+							score2Interval = setInterval(updateScore2, 100);
+							score3Interval = setInterval(updateScore3, 100);
+							score4Interval = setInterval(updateScore4, 100);
+							updateHighScore4(4);
+						}
+					}
+				}
+				if (score1 === 1000) {
+					score1 = 0;
+					score2 = 0;
+					score3 = 0;
+					score4 = 0;
+					gameOverInterval = setInterval(updateGameOver, 1000);
+					score1Interval = null;
+					score2Interval = null;
+					score3Interval = null;
+					score4Interval = null;
+				}
+				if (score2 > 0 && player1X > 390) {
+					player1X -= player1Speed;
+				} else if (score2 < 0) {
+					player1X = 390;
+				}
+				if (score2 < 1000) {
+					if (score2 > 0) {
+						player2Y += 10;
+					} else {
+						if (score2 === 0) {
+							if (score3 > 0) {
+								player3Y += 10;
+							} else {
+								if (score3 === 0) {
+									if (score4 > 0) {
+										player4Y += 10;
+									} else {
+										if (score4 === 0) {
+											if (score1 > 0) {
+												player1Y += 10;
+											} else {
+												if (score1 === 0) {
+													if (score2 > 0) {
+														player2Y += 10;
+														if (score2 === 0) {
+															if (score3 > 0) {
+																player3Y += 10;
+																if (score3 === 0) {
+																	player4Y += 10;
+																	if (score4 === 0) {
+																		// Game Over
+						} else {
+							score1 = 1000;
+							score2 = 500;
+							score3 = 200;
+							score4 = 100;
+							score1Interval = setInterval(updateScore1, 100);
+							score2Interval = setInterval(updateScore2, 100);
+							score3Interval = setInterval(updateScore3, 100);
+							score4Interval = setInterval(updateScore4, 100);
+							updateHighScore4(4);
+						}
+					}
+				}
+				if (score2 < 1000) {
+					if (score2 > 0) {
+						player2Y += 10;
+					} else {
+						if (score2 === 0) {
+							if (score3 > 0) {
+								player3Y += 10;
+							} else {
+								if (score3 === 0) {
+									if (score4 > 0) {
+										player4Y += 10;
+									} else {
+										if (score4 === 0) {
+											if (score1 > 0) {
+												player1Y += 10;
+											} else {
+												if (score1 === 0) {
+													if (score2 > 0) {
+														player2Y += 10;
+														if (score2 === 0) {
+															player3Y += 10;
+															if (score3 === 0) {
+															// Game Over
+						} else {
+							score1 = 1000;
+							score2 = 500;
+							score3 = 200;
+							score4 = 100;
+							score1Interval = setInterval(updateScore1, 100);
+							score2Interval = setInterval(updateScore2, 100);
+							score3Interval = setInterval(updateScore3, 100);
+							score4Interval = setInterval(updateScore4, 100);
+							updateHighScore4(4);
+						}
+						}
+					}
+				}
+			}
+			
+			function updatePlayer2() {
+				if (gameOverInterval !== null) {
+					return;
+				}
+				if (score2 > 0 && player2X < 390) {
+					player2X += player2Speed;
+				} else if (score2 < 0) {
+					player2X = 390;
+				}
+				if (score2 < 1000) {
+					if (score2 > 0) {
+						player2Y -= 10;
+					} else {
+						if (score2 === 0) {
+							if (score3 > 0) {
+								player3Y -= 10;
+							} else {
+								if (score3 === 0) {
+									if (score4 > 0) {
+										player4Y -= 10;
+									} else {
+										if (score4 === 0) {
+											if (score1 > 0) {
+												player1Y -= 10;
+											} else {
+												if (score1 === 0) {
+													if (score2 > 0) {
+														player2Y -= 10;
+														if (score2 === 0) {
+															player3Y -= 10;
+															if (score3 === 0) {
+															// Game Over
+						} else {
+							score2 = 1000;
+							score3 = 500;
+							score4 = 200;
+							score2Interval = setInterval(updateScore2, 100);
+							score3Interval = setInterval(updateScore3, 100);
+							score4Interval = setInterval(updateScore4, 100);
+							updateHighScore2(2);
+						}
+						}
+					}
+				}
+				if (score2 < 1000) {
+					if (score2 > 0) {
+						player2Y -= 10;
+					} else {
+						if (score2 === 0) {
+							if (score3 > 0) {
+								player3Y -= 10;
+							} else {
+								if (score3 === 0) {
+									if (score4 > 0) {
+										player4Y -= 10;
+									} else {
+										if (score4 === 0) {
+											if (score1 > 0) {
+												player1Y -= 10;
+											} else {
+												if (score1 === 0) {
+													if (score3 > 0) {
+														player3Y -= 10;
+														if (score3 === 0) {
+															player4Y -= 10;
+															if (score4 === 0) {
+																// Game Over
+						} else {
+							score2 = 1000;
+							score3 = 500;
+							score4 = 200;
+							score2Interval = setInterval(updateScore2, 100);
+							score3Interval = setInterval(updateScore3, 100);
+							score4Interval = setInterval(updateScore4, 100);
+							updateHighScore2(2);
+						}
+					}
+				}
+			}
+			
+			function updatePlayer3() {
+				if (gameOverInterval !== null) {
+					return;
+				}
+				if (score3 > 0 && player3X < 390) {
+					player3X += player3Speed;
+				} else if (score3 < 0) {
+					player3X = 390;
+				}
+				if (score3 < 1000) {
+					if (score3 > 0) {
+						player3Y += 10;
+					} else {
+						if (score3 === 0) {
+							if (score4 > 0) {
+								player4Y += 10;
+							} else {
+								if (score4 === 0) {
+									if (score1 > 0) {
+										player1Y += 10;
+									} else {
+										if (score1 === 0) {
+											if (score2 > 0) {
+												player2Y += 10;
+												if (score2 === 0) {
+													player3Y += 10;
+													if (score3 === 0) {
+														// Game Over
+						} else {
+							score3 = 1000;
+							score4 = 500;
+							score4Interval = setInterval(updateScore4, 100);
+							score3Interval = setInterval(updateScore3, 100);
+							score4Interval = setInterval(updateScore4, 100);
+							updateHighScore3(3);
+						}
+					}
+				}
+				if (score3 < 1000) {
+					if (score3 > 0) {
+						player3Y += 10;
+					} else {
+						if (score3 === 0) {
+							if (score4 > 0) {
+								player4Y += 10;
+							} else {
+								if (score4 === 0) {
+									if (score1 > 0) {
+										player1Y += 10;
+									} else {
+										if (score1 === 0) {
+											if (score2 > 0) {
+												player2Y += 10;
+												if (score2 === 0) {
+													player3Y += 10;
+													if (score3 === 0) {
+														// Game Over
+						} else {
+							score3 = 1000;
+							score4 = 500;
+							score4Interval = setInterval(updateScore4, 100);
+							score3Interval = setInterval(updateScore3, 100);
+							score4Interval = setInterval(updateScore4, 100);
+							updateHighScore3(3);
+						}
+					}
+				}
+			}
+			
+			function updatePlayer4() {
+				if (gameOverInterval !== null) {
+					return;
+				}
+				if (score4 > 0 && player4X < 390) {
+					player4X += player4Speed;
+				} else if (score4 < 0) {
+					player4X = 390;
+				}
+				if (score4 < 1000) {
+					if (score4 > 0) {
+						player4Y += 10;
+					} else {
+						if (score4 === 0) {
+							if (score1 > 0) {
+								player1Y += 10;
+							} else {
+								if (score1 === 0) {
+									if (score2 > 0) {
+										player2Y += 10;
+										if (score2 === 0) {
+											player3Y += 10;
+											if (score3 === 0) {
+												// Game Over
+						} else {
+							score4 = 1000;
+							score1 = 500;
+							score2 = 200;
+							score3 = 100;
+							score1Interval = setInterval(updateScore1, 100);
+							score2Interval = setInterval(updateScore2, 100);
+							score3Interval = setInterval(updateScore3, 100);
+							score3Interval = setInterval(updateScore4, 100);
+							updateHighScore4(4);
+						}
+					}
+				}
+				if (score4 > 0) {
+					player4Y += 10;
+				} else {
+					if (score4 === 0) {
+						if (score1 > 0) {
+							player1Y += 10;
+						} else {
+							if (score1 === 0) {
+								if (score2 > 0) {
+									player2Y += 10;
+									if (score2 === 0) {
+										player3Y += 10;
+										if (score3 === 0) {
+											// Game Over
+						} else {
+							score4 = 1000;
+							score1 = 500;
+							score2 = 200;
+							score3 = 100;
+							score1Interval = setInterval(updateScore1, 100);
+							score2Interval = setInterval(updateScore2, 100);
+							score3Interval = setInterval(updateScore3, 100);
+							score3Interval = setInterval(updateScore4, 100);
+							updateHighScore4(4);
+						}
+					}
+				}
+			}
+			
+			// Initial Game Setup
+			score1Interval = setInterval(updateScore1, 100);
+			score2Interval = setInterval(updateScore2, 100);
+			score3Interval = setInterval(updateScore3, 100);
+			score4Interval = setInterval(updateScore4, 100);
+			highScore1Interval = setInterval(updateHighScore1, 100);
+			highScore2Interval = setInterval(updateHighScore2, 100);
+			highScore3Interval = setInterval(updateHighScore3, 100);
+			highScore4Interval = setInterval(updateHighScore4, 100);
+			
+			// Event Listeners
+			document.getElementById('reset-button').addEventListener('click', resetGame);
+			document.getElementById('quit-button').addEventListener('click', () => {
+				window.close();
+			});
+			document.getElementById('play-button').addEventListener('click', () => {
+				let player1X = 50;
+				let player2X = 150;
+				let player1Y = 50;
+				let player2Y = 150;
+				player1Speed = 2;
+				player2Speed = 2;
+				gameOverInterval = setInterval(updateGameOver, 1000);
+				score1Interval = setInterval(updateScore1, 100);
+				score2Interval = setInterval(updateScore2, 100);
+				score3Interval = setInterval(updateScore3, 100);
+				score4Interval = setInterval(updateScore4, 100);
+				highScore1Interval = setInterval(updateHighScore1, 100);
+				highScore2Interval = setInterval(updateHighScore2, 100);
+				highScore3Interval = setInterval(updateHighScore3, 100);
+				highScore4Interval = setInterval(updateHighScore4, 100);
+			});
+			document.getElementById('high-score-input').addEventListener('keyup', (e) => {
+				if (e.key === 'Enter') {
+					let playersScore = e.target.value.split(',').map(Number);
+					updateHighScore(4);
+				}
+			});
+		</script>
+	</body>
+</html>

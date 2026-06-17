@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pong Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: monospace;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            border: 1px solid black;
+        }
+        #score {
+            font-size: 24px;
+            margin-top: 2em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="game-canvas" width="400" height="400"></canvas>
+    <div id="score">
+        <span id="score1">Score: 0</span>
+        <span id="score2">Score: 0</span>
+    </div>
+    <button id="reset-button">Reset</button>
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const score1 = document.getElementById('score1');
+        const score2 = document.getElementById('score2');
+        const resetButton = document.getElementById('reset-button');
+        const paddle1 = {
+            x: 5,
+            y: 5,
+            w: 10,
+            h: 100,
+            v: 5
+        };
+        const paddle2 = {
+            x: canvas.width - paddle1.x - 10,
+            y: paddle1.y,
+            w: 10,
+            h: 100,
+            v: 5
+        };
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            w: 10,
+            h: 10,
+            vx: 3,
+            vy: 3,
+            color: 'white',
+            radius: 5,
+            paused: false,
+            score: 0
+        };
+        const keyboardControls = {
+            'w': false,
+            's': false
+        };
+        let score1Value = 0;
+        let score2Value = 0;
+        let gameRunning = true;
+        let lastMouseX, lastMouseY;
+        let clock = null;
+        let gameOver = false;
+        let lastBallX, lastBallY;
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = '24px monospace';
+            ctx.fillStyle = '#f0f0f0';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText('Score: ' + score1Value, 10, 10);
+            ctx.fillText('Score: ' + score2Value, canvas.width - 10, 10);
+            if (gameOver) {
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '24px monospace';
+                ctx.fillStyle = '#000000';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+            if (gameRunning) {
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.beginPath();
+                ctx.rect(paddle1.x, paddle1.y, paddle1.w, paddle1.h);
+                ctx.fillStyle = 'black';
+                ctx.fill();
+                ctx.beginPath();
+                ctx.rect(paddle2.x, paddle2.y, paddle2.w, paddle2.h);
+                ctx.fillStyle = 'black';
+                ctx.fill();
+                ctx.beginPath();
+                ctx.rect(ball.x, ball.y, ball.w, ball.h);
+                ctx.fillStyle = ball.color;
+                ctx.fill();
+                ctx.beginPath();
+                ctx.rect(ball.x, ball.y + ball.h, ball.w, ball.h);
+                ctx.fillStyle = ball.color;
+                ctx.fill();
+                ctx.beginPath();
+                ctx.rect(ball.x + ball.w, ball.y + ball.h, ball.w, ball.h);
+                ctx.fillStyle = ball.color;
+                ctx.fill();
+                ctx.beginPath();
+                ctx.rect(ball.x + ball.w / 2, ball.y - ball.h, ball.w / 2, ball.h);
+                ctx.fillStyle = ball.color;
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(ball.x + ball.w / 2, ball.y + ball.h / 2, ball.radius, 0, 2 * Math.PI);
+                ctx.fillStyle = ball.color;
+                ctx.fill();
+                if (lastBallX === ball.x && lastBallY === ball.y) {
+                    if (keyboardControls['w']) {
+                        ball.y -= ball.vy;
+                    } else if (keyboardControls['s']) {
+                        ball.y += ball.vy;
+                    }
+                    if (ball.y < paddle1.y) {
+                        ball.y = paddle1.y + ball.h;
+                    } else if (ball.y > paddle1.y + paddle1.h) {
+                        ball.y = paddle1.y - ball.h;
+                    }
+                }
+                if (lastBallX === paddle2.x && lastBallY === paddle2.y) {
+                    if (keyboardControls['w']) {
+                        ball.x -= ball.vx;
+                    } else if (keyboardControls['s']) {
+                        ball.x += ball.vx;
+                    }
+                    if (ball.x < paddle2.x) {
+                        ball.x = paddle2.x - ball.w;
+                    } else if (ball.x > paddle2.x + paddle2.w) {
+                        ball.x = paddle2.x + ball.w;
+                    }
+                }
+                if (ball.x < 0) {
+                    score1Value++;
+                    ball.x = canvas.width / 2;
+                    ball.y = canvas.height / 2;
+                    ball.vx = -ball.vx;
+                    ball.vy = -ball.vy;
+                    ball.color = '#000000';
+                    ball.radius = 5;
+                    ball.vx = -ball.vx;
+                    ball.vy = -ball.vy;
+                } else if (ball.x > canvas.width - ball.w) {
+                    score2Value++;
+                    ball.x = canvas.width / 2;
+                    ball.y = canvas.height / 2;
+                    ball.vx = -ball.vx;
+                    ball.vy = -ball.vy;
+                    ball.color = '#000000';
+                    ball.radius = 5;
+                    ball.vx = -ball.vx;
+                    ball.vy = -ball.vy;
+                }
+                if (ball.x === paddle1.x + paddle1.w) {
+                    ball.y = paddle1.y + ball.h;
+                    ball.vx = -ball.vx;
+                    ball.vy = -ball.vy;
+                } else if (ball.x === paddle2.x - paddle2.w) {
+                    ball.y = paddle2.y - ball.h;
+                    ball.vx = -ball.vx;
+                    ball.vy = -ball.vy;
+                }
+                if (ball.x === ball.x + ball.w) {
+                    gameOver = true;
+                }
+                if (ball.y === ball.y + ball.h) {
+                    gameOver = true;
+                }
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                draw();
+            }
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+            if (gameRunning) {
+                if (lastMouseX === canvas.width / 2) {
+                    lastMouseX = paddle1.x;
+                    lastMouseY = paddle1.y;
+                } else if (lastMouseX === canvas.width / 2 + paddle1.w) {
+                    lastMouseX = paddle2.x;
+                    lastMouseY = paddle2.y;
+                }
+                if (lastMouseY === canvas.height / 2) {
+                    lastMouseX = paddle1.x;
+                    lastMouseY = paddle1.y + paddle1.h;
+                } else if (lastMouseY === canvas.height / 2 + paddle1.h) {
+                    lastMouseX = paddle2.x;
+                    lastMouseY = paddle2.y + paddle2.h;
+                }
+            }
+            if (gameOver) {
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '24px monospace';
+                ctx.fillStyle = '#000000';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+        }
+        document.getElementById('reset-button').addEventListener('click', () => {
+            score1Value = 0;
+            score2Value = 0;
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.vx = 3;
+            ball.vy = 3;
+            ball.color = 'white';
+            ball.radius = 5;
+            ball.vx = -ball.vx;
+            ball.vy = -ball.vy;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = '24px monospace';
+            ctx.fillStyle = '#f0f0f0';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText('Score: 0', 10, 10);
+            ctx.fillText('Score: 0', canvas.width - 10, 10);
+        });
+        let intervalId = setInterval(() => {
+            draw();
+            if (Math.random() < 0.05) {
+                if (Math.random() < 0.5) {
+                    paddle1.y += 2;
+                } else {
+                    paddle2.y -= 2;
+                }
+            }
+        }, 16);
+        clock = setInterval(() => {
+            if (gameRunning) {
+                const now = Date.now();
+                const dt = now - lastTime;
+                lastTime = now;
+                if (dt < 16) {
+                    const dtSeconds = dt / 1000;
+                    ball.vx += dtSeconds * 0.02;
+                    ball.vy += dtSeconds * 0.02;
+                    if (ball.x < 0) {
+                        ball.x = canvas.width / 2;
+                        ball.vx = -ball.vx;
+                        ball.vy = -ball.vy;
+                    } else if (ball.x > canvas.width - ball.w) {
+                        ball.x = canvas.width / 2;
+                        ball.vx = -ball.vx;
+                        ball.vy = -ball.vy;
+                    }
+                    if (ball.y < 0) {
+                        ball.y = canvas.height / 2;
+                        ball.vy = -ball.vy;
+                    } else if (ball.y > canvas.height - ball.h) {
+                        ball.y = canvas.height / 2;
+                        ball.vy = -ball.vy;
+                    }
+                    lastMouseX = mouseX;
+                    lastMouseY = mouseY;
+                    if (lastMouseX === canvas.width / 2) {
+                        lastMouseX = paddle1.x;
+                        lastMouseY = paddle1.y;
+                    } else if (lastMouseX === canvas.width / 2 + paddle1.w) {
+                        lastMouseX = paddle2.x;
+                        lastMouseY = paddle2.y;
+                    }
+                    if (lastMouseY === canvas.height / 2) {
+                        lastMouseX = paddle1.x;
+                        lastMouseY = paddle1.y + paddle1.h;
+                    } else if (lastMouseY === canvas.height / 2 + paddle1.h) {
+                        lastMouseX = paddle2.x;
+                        lastMouseY = paddle2.y + paddle2.h;
+                    }
+                }
+            }
+            lastBallX = ball.x;
+            lastBallY = ball.y;
+            if (gameOver) {
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '24px monospace';
+                ctx.fillStyle = '#000000';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+        });
+    </script>
+    <script>
+        let mouseX = 0;
+        let mouseY = 0;
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX - canvas.offsetLeft;
+            mouseY = e.clientY - canvas.offsetTop;
+        });
+    </script>
+</body>
+</html>

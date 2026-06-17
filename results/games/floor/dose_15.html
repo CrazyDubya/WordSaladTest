@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pong Game</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    #game-container {
+      width: 640px;
+      height: 480px;
+      border: 1px solid #ccc;
+      position: relative;
+      margin: 20px auto;
+    }
+    #game-container canvas {
+      border: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+    }
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 18px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game-container" width="640" height="480"></canvas>
+  <div id="controls">
+    <input type="text" id="player1" placeholder="Player 1" value="Player 1" onKeyPress="checkMove(this)">
+    <input type="text" id="player2" placeholder="Player 2" value="Player 2" onKeyPress="checkMove(this)">
+  </div>
+  <div id="score">
+    <span id="score1">0</span>
+    <span id="score2">0</span>
+  </div>
+  <script>
+    let paddle1 = document.getElementById('paddle1');
+    let paddle2 = document.getElementById('paddle2');
+    let ball = document.getElementById('ball');
+    let score1 = document.getElementById('score1');
+    let score2 = document.getElementById('score2');
+    let game = {
+      player1Score: 0,
+      player2Score: 0,
+      ballX: 320,
+      ballY: 240,
+      paddle1X: 10,
+      paddle2X: 550,
+      paddle1Y: 10,
+      paddle2Y: 450,
+      score1Interval: null,
+      score2Interval: null,
+      cpuMove: false,
+      ballSpeed: 5,
+      angle: 45,
+      blackVoid: document.createElement('div'),
+      whiteRectangle: document.createElement('div'),
+      electronicTennis: document.createElement('div'),
+      blip: document.createElement('div'),
+      beep: document.createElement('div'),
+      theSatisfyingPock: document.createElement('div'),
+      ricochet: document.createElement('div'),
+      angleOffPaddleEdge: document.createElement('div'),
+      scanlines: document.createElement('div'),
+      font: document.createElement('font'),
+      centerDashedLine: document.createElement('div'),
+      whiteRectangle2: document.createElement('div'),
+      blackVoid2: document.createElement('div'),
+      centerDashedLine2: document.createElement('div'),
+      electronicTennis2: document.createElement('div'),
+      blip2: document.createElement('div'),
+      beep2: document.createElement('div'),
+      theSatisfyingPock2: document.createElement('div'),
+      ricochet2: document.createElement('div'),
+      angleOffPaddleEdge2: document.createElement('div'),
+      scanlines2: document.createElement('div'),
+      font2: document.createElement('font')
+    };
+    game.init();
+    game.draw();
+    game.update();
+    game.drawBall();
+    game.drawScore();
+    game.drawPaddles();
+    game.drawBallRestart();
+    setInterval(() => {
+      if (!game.cpuMove) {
+        game.update();
+        game.draw();
+        if (game.ballX < 0) {
+          game.cpuMove = true;
+        }
+      }
+    }, 16);
+    setInterval(() => {
+      if (game.cpuMove) {
+        game.update();
+        game.draw();
+        if (game.ballX < 0) {
+          game.cpuMove = false;
+          score1++;
+          score2++;
+          game.drawScore();
+        }
+        game.drawBall();
+        if (game.ballX < paddle1X + paddle1Y - 20 && game.ballY > paddle1Y) {
+          if (game.ballX < paddle1X) {
+            game.cpuMove = false;
+            game.ballY = paddle2Y;
+          } else {
+            game.cpuMove = true;
+            game.ballX = paddle2X;
+          }
+        }
+        if (game.ballX > paddle1X + paddle1Y - 20 && game.ballY < paddle1Y) {
+          if (game.ballX > paddle2X) {
+            game.cpuMove = false;
+            game.ballY = paddle1Y;
+          } else {
+            game.cpuMove = true;
+            game.ballX = paddle1X;
+          }
+        }
+        game.draw();
+      }
+    }, 16);
+    setInterval(() => {
+      if (game.cpuMove) {
+        game.update();
+        game.draw();
+        if (game.ballX < 0) {
+          game.cpuMove = false;
+          game.drawScore();
+        }
+        game.drawBall();
+        if (game.ballX < paddle2X + paddle2Y - 20 && game.ballY > paddle2Y) {
+          if (game.ballX < paddle2X) {
+            game.cpuMove = false;
+            game.ballY = paddle1Y;
+          } else {
+            game.cpuMove = true;
+            game.ballX = paddle1X;
+          }
+        }
+        if (game.ballX > paddle2X + paddle2Y - 20 && game.ballY < paddle2Y) {
+          if (game.ballX > paddle1X) {
+            game.cpuMove = false;
+            game.ballY = paddle1Y;
+          } else {
+            game.cpuMove = true;
+            game.ballX = paddle1X;
+          }
+        }
+        game.draw();
+      }
+    }, 16);
+    setInterval(() => {
+      if (game.cpuMove) {
+        game.update();
+        game.draw();
+        if (game.ballX < 0) {
+          game.cpuMove = false;
+          game.drawScore();
+        }
+        game.drawBall();
+        if (game.ballX < paddle2X + paddle2Y - 20 && game.ballY > paddle2Y) {
+          if (game.ballX < paddle2X) {
+            game.cpuMove = false;
+            game.ballY = paddle1Y;
+          } else {
+            game.cpuMove = true;
+            game.ballX = paddle1X;
+          }
+        }
+        if (game.ballX > paddle2X + paddle2Y - 20 && game.ballY < paddle2Y) {
+          if (game.ballX > paddle1X) {
+            game.cpuMove = false;
+            game.ballY = paddle1Y;
+          } else {
+            game.cpuMove = true;
+            game.ballX = paddle1X;
+          }
+        }
+        if (game.ballX < paddle1X + paddle1Y - 20 && game.ballY > paddle1Y) {
+          game.cpuMove = false;
+          game.ballY = paddle2Y;
+        } else {
+          game.cpuMove = true;
+          game.ballX = paddle2X;
+        }
+        game.draw();
+      }
+    }, 16);
+    function checkMove(e) {
+      let x = e.clientX;
+      let y = e.clientY;
+      if (y < paddle1Y + 20) {
+        paddle1Y = y;
+        if (x < paddle1X + paddle1Y - 20) {
+          paddle1X = x;
+        }
+      } else {
+        paddle1X = x;
+        if (x > paddle1X + paddle1Y - 20) {
+          paddle1Y = y;
+        }
+      }
+      if (y < paddle2Y + 20) {
+        paddle2Y = y;
+        if (x < paddle2X + paddle2Y - 20) {
+          paddle2X = x;
+        }
+      } else {
+        paddle2X = x;
+        if (x > paddle2X + paddle2Y - 20) {
+          paddle2Y = y;
+        }
+      }
+      game.cpuMove = false;
+      ballX = paddle1X + paddle1Y - 20;
+      ballY = paddle2Y;
+    }
+  </script>
+</body>
+</html>

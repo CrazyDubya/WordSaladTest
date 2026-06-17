@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pong Game</title>
+  <style>
+    canvas {
+      border: 1px solid black;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="600" height="400"></canvas>
+  <script>
+    var canvas = document.getElementById('gameCanvas');
+    var ctx = canvas.getContext('2d');
+    var ball = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      vx: 3,
+      vy: 3,
+      radius: 20
+    };
+    var ballSpeed = 5;
+    var paddle1 = {
+      x: 10,
+      y: canvas.height / 2,
+      vx: -5,
+      vy: 0,
+      radius: 10
+    };
+    var paddle2 = {
+      x: canvas.width - 30,
+      y: canvas.height / 2,
+      vx: 5,
+      vy: 0,
+      radius: 10
+    };
+    var score1 = 0;
+    var score2 = 0;
+    var ballPosition = {
+      x: canvas.width / 2,
+      y: canvas.height / 2
+    };
+    var ballCollision = false;
+    var gameOver = false;
+    var clock = setInterval(() => {
+      if (!gameOver) {
+        update();
+        render();
+        checkCollision();
+        checkScore();
+      }
+    }, 1000 / 60);
+    function update() {
+      if (!gameOver) {
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+        if (ball.x < ball.radius) {
+          ball.x = ball.radius;
+          ball.y = ball.radius;
+          ballSpeed = -ballSpeed;
+        } else if (ball.x > canvas.width - ball.radius) {
+          ball.x = canvas.width - ball.radius;
+          ball.y = ball.radius;
+          ballSpeed = -ballSpeed;
+        }
+        paddle1.x += paddle1.vx;
+        paddle1.y = canvas.height / 2;
+        paddle2.x = canvas.width - 30 - paddle2.radius;
+        paddle2.y = canvas.height / 2;
+        if (paddle1.x < 0) {
+          paddle1.x = 0;
+          paddle1.vx = -paddle1.vx;
+        } else if (paddle1.x > canvas.width - paddle1.radius) {
+          paddle1.x = canvas.width - paddle1.radius;
+          paddle1.vx = -paddle1.vx;
+        }
+        if (paddle2.x < 0) {
+          paddle2.x = 0;
+          paddle2.vx = -paddle2.vx;
+        } else if (paddle2.x > canvas.width - paddle2.radius) {
+          paddle2.x = canvas.width - paddle2.radius;
+          paddle2.vx = -paddle2.vx;
+        }
+        if (ball.x + ball.radius > paddle1.x && ball.x - ball.radius < paddle1.x + paddle1.radius) {
+          ballCollision = true;
+        }
+        if (ball.x + ball.radius > paddle2.x && ball.x - ball.radius < paddle2.x + paddle2.radius) {
+          ballCollision = true;
+        }
+        if (ball.y + ball.radius > paddle1.y && ball.x < paddle1.x + paddle1.radius) {
+          ballCollision = true;
+        }
+        if (ball.y + ball.radius > paddle2.y && ball.x > paddle2.x - ball.radius) {
+          ballCollision = true;
+        }
+        if (ballCollision) {
+          ball.y = canvas.height / 2;
+          ballSpeed = -ballSpeed;
+          gameOver = true;
+        }
+        if (score1 >= 10) {
+          score1 -= 1;
+          score2 = 0;
+          ballPosition.x = canvas.width / 2;
+          ballPosition.y = canvas.height / 2;
+          ball.x = canvas.width / 2;
+          ball.y = canvas.height / 2;
+          ballSpeed = 5;
+        }
+        if (score2 >= 10) {
+          score2 -= 1;
+          score1 = 0;
+          ballPosition.x = canvas.width / 2;
+          ballPosition.y = canvas.height / 2;
+          ball.x = canvas.width / 2;
+          ball.y = canvas.height / 2;
+          ballSpeed = 5;
+        }
+      }
+    }
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'black';
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      ctx.arc(paddle1.x, paddle1.y, paddle1.radius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(paddle2.x, paddle2.y, paddle2.radius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      ctx.rect(10, canvas.height / 2 - paddle1.radius - 10, paddle1.radius * 2, paddle1.radius * 2);
+      ctx.fillStyle = 'white';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.rect(canvas.width - 30, canvas.height / 2 - paddle2.radius - 10, paddle2.radius * 2, paddle2.radius * 2);
+      ctx.fillStyle = 'white';
+      ctx.fill();
+      ctx.font = '24px Arial';
+      ctx.fillStyle = 'black';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(score1, canvas.width / 2 - 20, canvas.height - 10);
+      ctx.fillText(score2, canvas.width / 2 + 20, canvas.height - 10);
+    }
+    function checkCollision() {
+      if (ball.x + ball.radius > paddle1.x && ball.x - ball.radius < paddle1.x + paddle1.radius && ball.y + ball.radius > paddle1.y && ball.y - ball.radius < paddle1.y + paddle1.radius) {
+        ball.x = paddle1.x;
+        ball.y = paddle1.y;
+        ballSpeed = -ballSpeed;
+      }
+      if (ball.x + ball.radius > paddle2.x && ball.x - ball.radius < paddle2.x + paddle2.radius && ball.y + ball.radius > paddle2.y && ball.y - ball.radius < paddle2.y + paddle2.radius) {
+        ball.x = paddle2.x;
+        ball.y = paddle2.y;
+        ballSpeed = -ballSpeed;
+      }
+    }
+    function checkScore() {
+      if (score1 >= 10) {
+        alert('Player 1 wins!');
+        clearInterval(gameOver);
+      } else if (score2 >= 10) {
+        alert('Player 2 wins!');
+        clearInterval(gameOver);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pong Game</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #f0f0f0;
+      font-family: monospace;
+    }
+    #game-container {
+      width: 400px;
+      height: 400px;
+      border: 1px solid black;
+      position: relative;
+    }
+    .game-container canvas {
+      border: 1px solid black;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game-container" width="400" height="400"></canvas>
+  <input type="text" id="input" placeholder="Enter a score">
+  <button id="reset">Reset</button>
+  <script>
+    let score = 0;
+    let ballX, ballY;
+    let ballDx, ballDy, ballVelX, ballVelY;
+    let resetButtonEnabled = true;
+    let scoreDisplay = document.getElementById('score');
+    let inputElement = document.getElementById('input');
+    let resetButton = document.getElementById('reset');
+    let gameContainer = document.getElementById('game-container');
+
+    function init() {
+      gameContainer.style.background = '#ffffff';
+      ballX = 200;
+      ballY = 200;
+      ballVelX = 4;
+      ballVelY = -4;
+      resetButtonEnabled = true;
+      scoreDisplay.textContent = '0';
+    }
+
+    function draw() {
+      gameContainer.innerHTML = '';
+      const ctx = gameContainer.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, gameContainer.offsetWidth, gameContainer.offsetHeight);
+      ctx.fillStyle = 'black';
+      ctx.beginPath();
+      ctx.arc(ballX, ballY, 10, 0, 2 * Math.PI);
+      ctx.fill();
+      const rect = ctx.canvas.getBoundingClientRect();
+      const rectX = 10 + ballX - rect.left;
+      const rectY = 10 + ballY - rect.top;
+      const rectW = 40;
+      const rectH = 40;
+      if (rectX < 0 || rectX > gameContainer.offsetWidth - 40 || rectY < 0 || rectY > gameContainer.offsetHeight - 40) {
+        resetButtonEnabled = false;
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(rectX, rectY);
+        ctx.lineTo(rectX + rectW, rectY + rectH);
+        ctx.lineTo(rectX + rectW, rectY + rectH);
+        ctx.lineTo(0, 0);
+        ctx.stroke();
+      }
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      ctx.arc(ballX, ballY, 10, 0, 2 * Math.PI);
+      ctx.fill();
+      const rect = ctx.canvas.getBoundingClientRect();
+      const rectX = 10 + ballX - rect.left;
+      const rectY = 10 + ballY - rect.top;
+      const rectW = 40;
+      const rectH = 40;
+      if (rectX < 0 || rectX > gameContainer.offsetWidth - 40 || rectY < 0 || rectY > gameContainer.offsetHeight - 40) {
+        resetButtonEnabled = false;
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(rectX, rectY);
+        ctx.lineTo(rectX + rectW, rectY + rectH);
+        ctx.lineTo(rectX + rectW, rectY + rectH);
+        ctx.lineTo(0, 0);
+        ctx.stroke();
+      }
+      scoreDisplay.textContent = score;
+      if (inputElement.value !== '') {
+        score = parseInt(inputElement.value);
+        if (inputElement.value > 0) {
+          score = 0;
+        }
+        inputElement.value = '';
+        scoreDisplay.textContent = score;
+      }
+    }
+
+    function update() {
+      if (resetButtonEnabled) {
+        resetButtonEnabled = false;
+        clearInterval(interval);
+        inputElement.value = '';
+        scoreDisplay.textContent = '0';
+        ballX = 200;
+        ballY = 200;
+        ballVelX = 4;
+        ballVelY = -4;
+        init();
+      } else {
+        const dx = ballVelX;
+        const dy = ballVelY;
+        ballX += dx;
+        ballY += dy;
+        if (ballY > gameContainer.offsetHeight - 40) {
+          score++;
+          scoreDisplay.textContent = score;
+          ballX = 200;
+          ballY = 200;
+          ballVelX = 4;
+          ballVelY = -4;
+          init();
+        }
+        if (ballX < 0 || ballX > gameContainer.offsetWidth - 40) {
+          ballVelX *= -1;
+        }
+        if (ballY < 0 || ballY > gameContainer.offsetHeight - 40) {
+          ballVelY *= -1;
+        }
+        if (Math.abs(ballVelX) > 2) {
+          ballVelX *= -1;
+        }
+        if (Math.abs(ballVelY) > 2) {
+          ballVelY *= -1;
+        }
+        draw();
+      }
+    }
+
+    function keyDown(event) {
+      if (event.key === ' ') {
+        ballVelY = 8;
+      }
+      if (event.key === ' ') {
+        resetButtonEnabled = true;
+      }
+      if (event.key === ' ') {
+        inputElement.value = '';
+      }
+    }
+
+    let interval = setInterval(update, 16);
+    init();
+  </script>
+  <script>
+    const input = document.getElementById('input');
+    const resetButton = document.getElementById('reset');
+    resetButton.addEventListener('click', () => {
+      input.value = '';
+      resetButtonEnabled = true;
+      scoreDisplay.textContent = '0';
+    });
+  </script>
+</body>
+</html>

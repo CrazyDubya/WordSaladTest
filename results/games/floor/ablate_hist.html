@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pong Game</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    #game-container {
+      width: 640px;
+      height: 480px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      margin: 40px auto;
+      position: relative;
+    }
+    #game-container canvas {
+      border: none;
+    }
+    #game-container button {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game"></canvas>
+    <div id="controls">
+      <button id="reset">Reset</button>
+      <button id="mute">Mute</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const ctx2 = canvas.getContext('2d');
+    const resetButton = document.getElementById('reset');
+    const muteButton = document.getElementById('mute');
+    let player1Score = 0;
+    let player2Score = 0;
+    let player1Position = 0;
+    let player2Position = 0;
+    let gameRunning = false;
+
+    let ball = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      velocityX: 2,
+      velocityY: -2,
+      radius: 20
+    };
+
+    let line1 = {
+      x1: canvas.width,
+      y1: canvas.height,
+      x2: canvas.width,
+      y2: canvas.height
+    };
+
+    let line2 = {
+      x1: canvas.width,
+      y1: 0,
+      x2: 0,
+      y2: canvas.height
+    };
+
+    let dot1 = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      velocityX: -2,
+      velocityY: -2
+    };
+
+    let dot2 = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      velocityX: 2,
+      velocityY: 2
+    };
+
+    resetButton.addEventListener('click', resetGame);
+    muteButton.addEventListener('click', muteGame);
+
+    function resetGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      reset();
+    }
+
+    function muteGame() {
+      gameRunning = !gameRunning;
+      if (gameRunning) {
+        ctx2.clearRect(0, 0, canvas.width, canvas.height);
+        reset();
+      }
+    }
+
+    function reset() {
+      ball.x = canvas.width / 2;
+      ball.y = canvas.height / 2;
+      line1.x1 = canvas.width;
+      line1.y1 = canvas.height;
+      line1.x2 = canvas.width;
+      line1.y2 = canvas.height;
+      line2.x1 = canvas.width;
+      line2.y1 = 0;
+      line2.x2 = 0;
+      dot1.x = canvas.width / 2;
+      dot1.y = canvas.height / 2;
+      dot2.x = canvas.width / 2;
+      dot2.y = canvas.height / 2;
+      player1Score = 0;
+      player2Score = 0;
+      player1Position = 0;
+      player2Position = 0;
+      gameRunning = false;
+    }
+
+    function moveBall() {
+      if (gameRunning) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx2.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(ball, ball.x, ball.y, ball.radius, ball.radius);
+        ctx2.beginPath();
+        ctx2.strokeStyle = 'black';
+        ctx2.lineWidth = 2;
+        ctx2.lineCap = 'round';
+        ctx2.lineJoin = 'round';
+        ctx2.moveTo(line1.x1, line1.y1);
+        ctx2.lineTo(line1.x2, line1.y2);
+        ctx2.stroke();
+        ctx2.beginPath();
+        ctx2.strokeStyle = 'black';
+        ctx2.lineWidth = 2;
+        ctx2.lineCap = 'round';
+        ctx2.lineJoin = 'round';
+        ctx2.moveTo(line2.x1, line2.y1);
+        ctx2.lineTo(line2.x2, line2.y2);
+        ctx2.stroke();
+        ctx2.beginPath();
+        ctx2.strokeStyle = 'black';
+        ctx2.lineWidth = 2;
+        ctx2.lineCap = 'round';
+        ctx2.lineJoin = 'round';
+        ctx2.moveTo(dot1.x, dot1.y);
+        ctx2.lineTo(dot2.x, dot2.y);
+        ctx2.stroke();
+        for (let i = 0; i < 10; i++) {
+          ctx2.beginPath();
+          ctx2.strokeStyle = 'black';
+          ctx2.lineWidth = 5;
+          ctx2.lineCap = 'round';
+          ctx2.lineJoin = 'round';
+          ctx2.moveTo(dot1.x + Math.random() * 20, dot1.y);
+          ctx2.lineTo(dot2.x + Math.random() * 20, dot2.y);
+          ctx2.stroke();
+        }
+        if (Math.abs(ball.x - dot1.x) < 20 && Math.abs(ball.y - dot1.y) < 20) {
+          dot1.x += ball.velocityX;
+          dot1.y += ball.velocityY;
+        } else if (Math.abs(ball.x - dot2.x) < 20 && Math.abs(ball.y - dot2.y) < 20) {
+          dot2.x += ball.velocityX;
+          dot2.y += ball.velocityY;
+        }
+        if (Math.abs(dot1.x - dot2.x) < 10 && Math.abs(dot1.y - dot2.y) < 10) {
+          player1Score++;
+          reset();
+        }
+        if (Math.abs(dot2.x - dot1.x) < 10 && Math.abs(dot2.y - dot1.y) < 10) {
+          player2Score++;
+          reset();
+        }
+        if (player1Score > 10) {
+          alert('Player 1 wins!');
+          reset();
+        } else if (player2Score > 10) {
+          alert('Player 2 wins!');
+          reset();
+        } else {
+          player1Position += ball.velocityX;
+          player2Position += ball.velocityX;
+          if (player1Position > canvas.width - 20) {
+            player1Position = 0;
+          }
+          if (player2Position > canvas.width - 20) {
+            player2Position = 0;
+          }
+        }
+        ball.x = canvas.width / 2;
+        ball.y = canvas.height / 2;
+        line1.x1 = canvas.width;
+        line1.y1 = canvas.height;
+        line1.x2 = canvas.width;
+        line1.y2 = canvas.height;
+        line2.x1 = canvas.width;
+        line2.y1 = 0;
+        line2.x2 = 0;
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx2.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(ball, ball.x, ball.y, ball.radius, ball.radius);
+      ctx2.beginPath();
+      ctx2.strokeStyle = 'black';
+      ctx2.lineWidth = 2;
+      ctx2.lineCap = 'round';
+      ctx2.lineJoin = 'round';
+      ctx2.moveTo(line1.x1, line1.y1);
+      ctx2.lineTo(line1.x2, line1.y2);
+      ctx2.stroke();
+      ctx2.beginPath();
+      ctx2.strokeStyle = 'black';
+      ctx2.lineWidth = 2;
+      ctx2.lineCap = 'round';
+      ctx2.lineJoin = 'round';
+      ctx2.moveTo(line2.x1, line2.y1);
+      ctx2.lineTo(line2.x2, line2.y2);
+      ctx2.stroke();
+      ctx2.beginPath();
+      ctx2.strokeStyle = 'black';
+      ctx2.lineWidth = 2;
+      ctx2.lineCap = 'round';
+      ctx2.lineJoin = 'round';
+      ctx2.moveTo(dot1.x, dot1.y);
+      ctx2.lineTo(dot2.x, dot2.y);
+      ctx2.stroke();
+      for (let i = 0; i < 10; i++) {
+        ctx2.beginPath();
+        ctx2.strokeStyle = 'black';
+        ctx2.lineWidth = 5;
+        ctx2.lineCap = 'round';
+        ctx2.lineJoin = 'round';
+        ctx2.moveTo(dot1.x + Math.random() * 20, dot1.y);
+        ctx2.lineTo(dot2.x + Math.random() * 20, dot2.y);
+        ctx2.stroke();
+      }
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === 'w' && gameRunning) {
+        player1Position -= 5;
+        if (player1Position < 0) {
+          player1Position = 0;
+        }
+      } else if (event.key === 's' && gameRunning) {
+        player1Position += 5;
+        if (player1Position > canvas.width - 20) {
+          player1Position = canvas.width - 20;
+        }
+      } else if (event.key === 'ArrowUp' && gameRunning) {
+        player2Position -= 5;
+        if (player2Position < 0) {
+          player2Position = 0;
+        }
+      } else if (event.key === 'ArrowDown' && gameRunning) {
+        player2Position += 5;
+        if (player2Position > canvas.width - 20) {
+          player2Position = canvas.width - 20;
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyPress);
+    document.addEventListener('keyup', function(event) {
+      if (event.key === 'w' || event.key === 'ArrowUp') {
+        resetGame();
+      } else if (event.key === 's' || event.key === 'ArrowDown') {
+        resetGame();
+      } else if (event.key === 'ArrowLeft' || event.key === 'ArrowLeft') {
+        resetGame();
+      } else if (event.key === 'ArrowRight' || event.key === 'ArrowRight') {
+        muteGame();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+        #score {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        #controls {
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="game-canvas" width="400" height="400"></canvas>
+    <div id="controls">
+        <p>Score: <span id="score">0</span></p>
+        <button id="start-btn">Start Game</button>
+        <button id="reset-btn">Reset Game</button>
+    </div>
+    <script>
+        let ctx = document.getElementById('game-canvas').getContext('2d');
+        let score = 0;
+        let intervalId;
+        let isRunning = false;
+        let cpuDifficulty = 0;
+        let player1X = 200;
+        let player2X = 200;
+        let score1 = 0;
+        let score2 = 0;
+        let player1LastMove = 0;
+        let player2LastMove = 0;
+
+        function draw() {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+
+            ctx.fillStyle = 'green';
+            ctx.font = '24px Arial';
+            ctx.fillText(`Score: ${score1}`, 10, 10);
+            ctx.fillText(`Score: ${score2}`, 390, 10);
+
+            if (isRunning) {
+                ctx.fillStyle = 'green';
+                ctx.fillRect(player1X, 170, 20, 20);
+                ctx.fillRect(player2X, 170, 20, 20);
+
+                ctx.fillStyle = 'red';
+                ctx.fillRect(160, 190, 20, 20);
+
+                ctx.fillStyle = 'green';
+                ctx.fillRect(250, 190, 20, 20);
+                ctx.fillStyle = 'red';
+                ctx.fillRect(280, 190, 20, 20);
+
+                if (score1 > score2) {
+                    ctx.fillStyle = 'green';
+                    ctx.fillRect(player1X, 220, 20, 20);
+                    ctx.fillRect(player2X, 220, 20, 20);
+                } else {
+                    ctx.fillStyle = 'green';
+                    ctx.fillRect(player1X, 170, 20, 20);
+                    ctx.fillRect(player2X, 170, 20, 20);
+                }
+                ctx.fillStyle = 'red';
+                ctx.fillRect(240, 220, 20, 20);
+
+                ctx.fillStyle = 'green';
+                ctx.fillRect(260, 220, 20, 20);
+                ctx.fillStyle = 'red';
+                ctx.fillRect(290, 220, 20, 20);
+
+                if (isRunning) {
+                    ctx.fillStyle = 'green';
+                    ctx.font = '20px Arial';
+                    ctx.fillText(`Player 1 Score: ${score1}`, 10, 10);
+                    ctx.fillText(`Player 2 Score: ${score2}`, 390, 10);
+
+                    ctx.font = '24px Arial';
+                    ctx.fillText('High Score: 500', 10, 40);
+                }
+            }
+
+            if (isRunning) {
+                if (mouseX < 150 && mouseX > 100 && mouseY > 90) {
+                    if (cpuDifficulty == 0) {
+                        score1++;
+                        ctx.fillStyle = 'green';
+                        ctx.fillRect(player1X, 190, 20, 20);
+                        ctx.fillRect(player2X, 190, 20, 20);
+                    } else {
+                        score2++;
+                        ctx.fillStyle = 'green';
+                        ctx.fillRect(player1X, 190, 20, 20);
+                        ctx.fillRect(player2X, 190, 20, 20);
+                    }
+                }
+
+                if (cpuDifficulty == 1) {
+                    if (mouseX < 150 && mouseX > 100 && mouseY > 90) {
+                        if (score1 > score2) {
+                            ctx.fillStyle = 'green';
+                            ctx.fillRect(player1X, 190, 20, 20);
+                            ctx.fillRect(player2X, 190, 20, 20);
+                        } else {
+                            ctx.fillStyle = 'green';
+                            ctx.fillRect(player1X, 190, 20, 20);
+                            ctx.fillRect(player2X, 190, 20, 20);
+                        }
+                    } else {
+                        if (score2 > score1) {
+                            ctx.fillStyle = 'green';
+                            ctx.fillRect(player1X, 190, 20, 20);
+                            ctx.fillRect(player2X, 190, 20, 20);
+                        } else {
+                            ctx.fillStyle = 'green';
+                            ctx.fillRect(player1X, 190, 20, 20);
+                            ctx.fillRect(player2X, 190, 20, 20);
+                        }
+                    }
+                }
+
+                if (score1 > score2) {
+                    ctx.fillStyle = 'green';
+                    ctx.fillRect(player1X, 190, 20, 20);
+                    ctx.fillRect(player2X, 190, 20, 20);
+                } else {
+                    ctx.fillStyle = 'green';
+                    ctx.fillRect(player1X, 190, 20, 20);
+                    ctx.fillRect(player2X, 190, 20, 20);
+                }
+
+                if (score1 == score2 && mouseX > player1LastMove && mouseX < player2LastMove) {
+                    console.log('Victory!');
+                    isRunning = false;
+                    intervalId = setInterval(() => {
+                        score1 = 0;
+                        score2 = 0;
+                        player1LastMove = 0;
+                        player2LastMove = 0;
+                    }, 1000);
+                }
+
+                if (score1 == 500) {
+                    console.log('You Win!');
+                    isRunning = false;
+                    intervalId = setInterval(() => {
+                        score1 = 0;
+                        score2 = 0;
+                        player1LastMove = 0;
+                        player2LastMove = 0;
+                    }, 1000);
+                }
+
+                if (score2 == 500) {
+                    console.log('You Win!');
+                    isRunning = false;
+                    intervalId = setInterval(() => {
+                        score1 = 0;
+                        score2 = 0;
+                        player1LastMove = 0;
+                        player2LastMove = 0;
+                    }, 1000);
+                }
+
+                if (intervalId) {
+                    window.clearInterval(intervalId);
+                }
+            }
+        }
+
+        document.getElementById('start-btn').addEventListener('click', function() {
+            if (isRunning) {
+                return;
+            }
+            isRunning = true;
+            cpuDifficulty = Math.floor(Math.random() * 2);
+            player1X = 200;
+            player2X = 200;
+            score1 = 0;
+            score2 = 0;
+            player1LastMove = 0;
+            player2LastMove = 0;
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = 'green';
+            ctx.fillText('Press Space to start', 10, 10);
+            ctx.fillStyle = 'black';
+            ctx.font = '24px Arial';
+            ctx.fillText('Score: 0', 390, 10);
+            ctx.fillText('High Score: 0', 390, 40);
+        });
+
+        document.getElementById('reset-btn').addEventListener('click', function() {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = 'green';
+            ctx.fillText('Score: 0', 10, 10);
+            ctx.fillText('High Score: 0', 390, 10);
+            player1X = 200;
+            player2X = 200;
+            score1 = 0;
+            score2 = 0;
+            player1LastMove = 0;
+            player2LastMove = 0;
+            isRunning = false;
+            intervalId = null;
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = 'green';
+            ctx.fillText('Press Space to start', 10, 10);
+            ctx.fillStyle = 'black';
+            ctx.font = '24px Arial';
+            ctx.fillText('Score: 0', 390, 10);
+            ctx.fillText('High Score: 0', 390, 40);
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key == ' ') {
+                if (isRunning) {
+                    if (cpuDifficulty == 0) {
+                        if (e.clientX < 150 && e.clientY > 100) {
+                            score1++;
+                            ctx.fillStyle = 'green';
+                            ctx.fillRect(player1X, 190, 20, 20);
+                            ctx.fillRect(player2X, 190, 20, 20);
+                        } else {
+                            score2++;
+                            ctx.fillStyle = 'green';
+                            ctx.fillRect(player1X, 190, 20, 20);
+                            ctx.fillRect(player2X, 190, 20, 20);
+                        }
+                    } else {
+                        if (e.clientX < 150 && e.clientY > 100) {
+                            score2++;
+                            ctx.fillStyle = 'green';
+                            ctx.fillRect(player1X, 190, 20, 20);
+                            ctx.fillRect(player2X, 190, 20, 20);
+                        } else {
+                            score1++;
+                            ctx.fillStyle = 'green';
+                            ctx.fillRect(player1X, 190, 20, 20);
+                            ctx.fillRect(player2X, 190, 20, 20);
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

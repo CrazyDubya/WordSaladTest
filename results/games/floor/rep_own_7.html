@@ -1,0 +1,449 @@
+```
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pong Game</title>
+  <style>
+    body {
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    #game-container {
+      width: 800px;
+      height: 600px;
+      border: 1px solid #ccc;
+      margin: 50px auto;
+      display: inline-block;
+    }
+    #score {
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+    #score text {
+      color: #333;
+    }
+    # Controls {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas" width="800" height="600"></canvas>
+    <div id="score">Score: 0</div>
+    <div id="controls">
+      <label for="x">X:</label>
+      <input type="number" id="x" value="0">
+      <label for="o">O:</label>
+      <input type="number" id="o" value="0">
+    </div>
+    <button id="start-button">Start</button>
+  </div>
+
+  <script>
+    let playerX = 0;
+    let playerO = 0;
+    let cpuX = 400;
+    let cpuY = 0;
+    let scores = [0, 0];
+    let clock = 0;
+    let running = false;
+    let paused = false;
+    let lastScore = 0;
+    let previousScore = 0;
+    let currentScore = 0;
+    let playedGames = 0;
+
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+
+    const startButton = document.getElementById('start-button');
+    startButton.addEventListener('click', startGame);
+
+    let paddleX = 100;
+    let paddleY = 300;
+    let ballX = 400;
+    let ballY = 300;
+    let ballDx = 2;
+    let ballDy = 2;
+    let ballSpeed = 2;
+
+    let scoreText = document.getElementById('score');
+
+    function startGame() {
+      running = true;
+      paused = false;
+      previousScore = 0;
+      currentScore = 0;
+      scores[0] = 0;
+      scores[1] = 0;
+      playedGames = 0;
+      ballX = 400;
+      ballY = 300;
+      ballDx = 2;
+      ballDy = 2;
+      ballSpeed = 2;
+
+      canvas.width = 800;
+      canvas.height = 600;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'black';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = 'white';
+      ctx.fillRect(10, 10, 100, 20);
+      ctx.fillRect(10, canvas.height - 30, 100, 20);
+
+      ctx.fillStyle = 'white';
+      ctx.fillRect(10, canvas.height - 50, 100, 20);
+      ctx.fillRect(canvas.width - 10, canvas.height - 50, 100, 20);
+      ctx.fillStyle = 'white';
+      ctx.fillRect(canvas.width - 10, 10, 20, 20);
+      ctx.fillRect(0, canvas.height - 30, 20, 20);
+
+      ctx.fillStyle = 'white';
+      ctx.fillRect(10, canvas.height - 40, 20, 20);
+      ctx.fillRect(canvas.width - 10, canvas.height - 40, 20, 20);
+
+      ctx.fillStyle = 'white';
+      ctx.fillRect(canvas.width - 40, canvas.height - 50, 20, 20);
+      ctx.fillRect(0, canvas.height - 50, 20, 20);
+
+      ctx.fillStyle = 'black';
+      ctx.fillRect(10, 10, 10, 10);
+      ctx.fillRect(10, canvas.height - 30, 10, 10);
+      ctx.fillRect(canvas.width - 10, canvas.height - 30, 10, 10);
+      ctx.fillRect(canvas.width - 10, 10, 10, 10);
+      ctx.fillRect(0, canvas.height - 30, 10, 10);
+      ctx.fillRect(0, canvas.height - 50, 10, 10);
+
+      ctx.fillStyle = 'black';
+      ctx.fillRect(canvas.width - 40, canvas.height - 50, 10, 10);
+      ctx.fillRect(0, canvas.height - 50, 10, 10);
+
+      ctx.fillStyle = 'black';
+      ctx.fillRect(canvas.width - 20, 10, 10, 10);
+      ctx.fillRect(0, canvas.height - 20, 10, 10);
+      ctx.fillRect(0, canvas.height - 30, 10, 10);
+      ctx.fillRect(0, canvas.height - 40, 10, 10);
+      ctx.fillRect(canvas.width - 20, canvas.height - 30, 10, 10);
+      ctx.fillRect(0, canvas.height - 40, 10, 10);
+
+      ctx.fillStyle = 'black';
+      ctx.fillRect(canvas.width - 20, canvas.height - 50, 10, 10);
+      ctx.fillRect(0, canvas.height - 50, 10, 10);
+      ctx.fillRect(0, canvas.height - 60, 10, 10);
+      ctx.fillRect(canvas.width - 20, canvas.height - 60, 10, 10);
+      ctx.fillRect(canvas.width - 20, canvas.height - 70, 10, 10);
+      ctx.fillRect(0, canvas.height - 70, 10, 10);
+      ctx.fillRect(0, canvas.height - 80, 10, 10);
+      ctx.fillRect(0, canvas.height - 90, 10, 10);
+      ctx.fillRect(0, canvas.height - 100, 10, 10);
+
+      ctx.fillStyle = 'black';
+      ctx.fillRect(10, 10, 10, 10);
+      ctx.fillRect(10, canvas.height - 30, 10, 10);
+      ctx.fillRect(canvas.width - 10, canvas.height - 30, 10, 10);
+      ctx.fillRect(0, canvas.height - 30, 10, 10);
+      ctx.fillRect(0, canvas.height - 50, 10, 10);
+      ctx.fillRect(0, canvas.height - 60, 10, 10);
+      ctx.fillRect(0, canvas.height - 70, 10, 10);
+      ctx.fillRect(0, canvas.height - 80, 10, 10);
+      ctx.fillRect(0, canvas.height - 90, 10, 10);
+
+      ctx.fillStyle = 'black';
+      ctx.fillRect(10, 10, 10, 10);
+      ctx.fillRect(canvas.width - 10, 10, 10, 10);
+      ctx.fillRect(canvas.width - 10, canvas.height - 30, 10, 10);
+      ctx.fillRect(canvas.width - 10, canvas.height - 50, 10, 10);
+      ctx.fillRect(canvas.width - 10, canvas.height - 70, 10, 10);
+      ctx.fillRect(canvas.width - 10, canvas.height - 90, 10, 10);
+      ctx.fillRect(0, canvas.height - 70, 10, 10);
+      ctx.fillRect(0, canvas.height - 70, 10, 10);
+      ctx.fillRect(canvas.width - 70, canvas.height - 70, 10, 10);
+      ctx.fillRect(0, canvas.height - 70, 10, 10);
+
+      ctx.fillStyle = 'black';
+      ctx.fillRect(10, 10, 10, 10);
+      ctx.fillRect(canvas.width - 10, 10, 10, 10);
+      ctx.fillRect(canvas.width - 10, canvas.height - 30, 10, 10);
+      ctx.fillRect(canvas.width - 10, canvas.height - 50, 10, 10);
+      ctx.fillRect(canvas.width - 10, canvas.height - 70, 10, 10);
+      ctx.fillRect(canvas.width - 10, canvas.height - 90, 10, 10);
+      ctx.fillRect(0, canvas.height - 70, 10, 10);
+      ctx.fillRect(0, canvas.height - 70, 10, 10);
+      ctx.fillRect(canvas.width - 70, canvas.height - 70, 10, 10);
+      ctx.fillRect(0, canvas.height - 70, 10, 10);
+
+      ctx.fillStyle = 'black';
+      ctx.fillRect(canvas.width - 20, 10, 10, 10);
+      ctx.fillRect(0, canvas.height - 20, 10, 10);
+      ctx.fillRect(0, canvas.height - 30, 10, 10);
+      ctx.fillRect(0, canvas.height - 40, 10, 10);
+      ctx.fillRect(canvas.width - 20, canvas.height - 30, 10, 10);
+      ctx.fillRect(0, canvas.height - 40, 10, 10);
+      ctx.fillRect(0, canvas.height - 50, 10, 10);
+      ctx.fillRect(0, canvas.height - 60, 10, 10);
+      ctx.fillRect(0, canvas.height - 70, 10, 10);
+      ctx.fillRect(0, canvas.height - 80, 10, 10);
+      ctx.fillRect(0, canvas.height - 90, 10, 10);
+
+      ctx.fillStyle = 'black';
+      ctx.fillRect(canvas.width - 20, 10, 10, 10);
+      ctx.fillRect(0, canvas.height - 20, 10, 10);
+      ctx.fillRect(0, canvas.height - 30, 10, 10);
+      ctx.fillRect(0, canvas.height - 40, 10, 10);
+      ctx.fillRect(0, canvas.height - 50, 10, 10);
+      ctx.fillRect(0, canvas.height - 60, 10, 10);
+      ctx.fillRect(0, canvas.height - 70, 10, 10);
+      ctx.fillRect(0, canvas.height - 80, 10, 10);
+      ctx.fillRect(0, canvas.height - 90, 10, 10);
+
+      ctx.fillStyle = 'black';
+      ctx.fillRect(canvas.width - 20, 10, 10, 10);
+      ctx.fillRect(0, canvas.height - 20, 10, 10);
+      ctx.fillRect(0, canvas.height - 30, 10, 10);
+      ctx.fillRect(0, canvas.height - 40, 10, 10);
+      ctx.fillRect(0, canvas.height - 50, 10, 10);
+      ctx.fillRect(0, canvas.height - 60, 10, 10);
+      ctx.fillRect(0, canvas.height - 70, 10, 10);
+      ctx.fillRect(0, canvas.height - 80, 10, 10);
+      ctx.fillRect(0, canvas.height - 90, 10, 10);
+
+      ctx.fillStyle = 'black';
+      ctx.fillRect(canvas.width - 20, 10, 10, 10);
+      ctx.fillRect(0, canvas.height - 20, 10, 10);
+      ctx.fillRect(0, canvas.height - 30, 10, 10);
+      ctx.fillRect(0, canvas.height - 40, 10, 10);
+      ctx.fillRect(0, canvas.height - 50, 10, 10);
+      ctx.fillRect(0, canvas.height - 60, 10, 10);
+      ctx.fillRect(0, canvas.height - 70, 10, 10);
+      ctx.fillRect(0, canvas.height - 80, 10, 10);
+      ctx.fillRect(0, canvas.height - 90, 10, 10);
+
+      ctx.fillStyle = 'black';
+      ctx.fillRect(canvas.width - 20, 10, 10, 10);
+      ctx.fillRect(0, canvas.height - 20, 10, 10);
+      ctx.fillRect(0, canvas.height - 30, 10, 10);
+      ctx.fillRect(0, canvas.height - 40, 10, 10);
+      ctx.fillRect(0, canvas.height - 50, 10, 10);
+      ctx.fillRect(0, canvas.height - 60, 10, 10);
+      ctx.fillRect(0, canvas.height - 70, 10, 10);
+      ctx.fillRect(0, canvas.height - 80, 10, 10);
+      ctx.fillRect(0, canvas.height - 90, 10, 10);
+    }
+
+    let gameOver = false;
+
+    function update() {
+      if (gameOver) return;
+
+      if (running) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(10, 10, 100, 20);
+        ctx.fillRect(10, canvas.height - 30, 100, 20);
+        ctx.fillRect(canvas.width - 10, canvas.height - 30, 100, 20);
+        ctx.fillRect(canvas.width - 10, 10, 20, 20);
+        ctx.fillRect(0, canvas.height - 30, 20, 20);
+        ctx.fillRect(0, canvas.height - 50, 20, 20);
+        ctx.fillRect(0, canvas.height - 60, 20, 20);
+        ctx.fillRect(0, canvas.height - 70, 20, 20);
+        ctx.fillRect(0, canvas.height - 80, 20, 20);
+        ctx.fillRect(0, canvas.height - 90, 20, 20);
+        ctx.fillStyle = 'black';
+        ctx.fillRect(10, 10, 10, 10);
+        ctx.fillRect(10, canvas.height - 30, 10, 10);
+        ctx.fillRect(canvas.width - 10, canvas.height - 30, 10, 10);
+        ctx.fillRect(canvas.width - 10, 10, 10, 10);
+        ctx.fillRect(0, canvas.height - 30, 10, 10);
+        ctx.fillRect(0, canvas.height - 50, 10, 10);
+        ctx.fillRect(0, canvas.height - 60, 10, 10);
+        ctx.fillRect(0, canvas.height - 70, 10, 10);
+        ctx.fillRect(0, canvas.height - 80, 10, 10);
+        ctx.fillRect(0, canvas.height - 90, 10, 10);
+        ctx.fillStyle = 'black';
+        ctx.fillRect(canvas.width - 20, 10, 10, 10);
+        ctx.fillRect(0, canvas.height - 20, 10, 10);
+        ctx.fillRect(0, canvas.height - 30, 10, 10);
+        ctx.fillRect(0, canvas.height - 40, 10, 10);
+        ctx.fillRect(0, canvas.height - 50, 10, 10);
+        ctx.fillRect(0, canvas.height - 60, 10, 10);
+        ctx.fillRect(0, canvas.height - 70, 10, 10);
+        ctx.fillRect(0, canvas.height - 80, 10, 10);
+        ctx.fillRect(0, canvas.height - 90, 10, 10);
+        ctx.fillStyle = 'black';
+        ctx.fillRect(canvas.width - 20, 10, 10, 10);
+        ctx.fillRect(0, canvas.height - 20, 10, 10);
+        ctx.fillRect(0, canvas.height - 30, 10, 10);
+        ctx.fillRect(0, canvas.height - 40, 10, 10);
+        ctx.fillRect(0, canvas.height - 50, 10, 10);
+        ctx.fillRect(0, canvas.height - 60, 10, 10);
+        ctx.fillRect(0, canvas.height - 70, 10, 10);
+        ctx.fillRect(0, canvas.height - 80, 10, 10);
+        ctx.fillRect(0, canvas.height - 90, 10, 10);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(10, 10, 10, 10);
+        ctx.fillRect(10, canvas.height - 30, 10, 10);
+        ctx.fillRect(canvas.width - 10, canvas.height - 30, 10, 10);
+        ctx.fillRect(canvas.width - 10, 10, 10, 10);
+        ctx.fillRect(0, canvas.height - 30, 10, 10);
+        ctx.fillRect(0, canvas.height - 50, 10, 10);
+        ctx.fillRect(0, canvas.height - 60, 10, 10);
+        ctx.fillRect(0, canvas.height - 70, 10, 10);
+        ctx.fillRect(0, canvas.height - 80, 10, 10);
+        ctx.fillRect(0, canvas.height - 90, 10, 10);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(canvas.width - 20, 10, 10, 10);
+        ctx.fillRect(0, canvas.height - 20, 10, 10);
+        ctx.fillRect(0, canvas.height - 30, 10, 10);
+        ctx.fillRect(0, canvas.height - 40, 10, 10);
+        ctx.fillRect(0, canvas.height - 50, 10, 10);
+        ctx.fillRect(0, canvas.height - 60, 10, 10);
+        ctx.fillRect(0, canvas.height - 70, 10, 10);
+        ctx.fillRect(0, canvas.height - 80, 10, 10);
+        ctx.fillRect(0, canvas.height - 90, 10, 10);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(canvas.width - 20, 10, 10, 10);
+        ctx.fillRect(0, canvas.height - 20, 10, 10);
+        ctx.fillRect(0, canvas.height - 30, 10, 10);
+        ctx.fillRect(0, canvas.height - 40, 10, 10);
+        ctx.fillRect(0, canvas.height - 50, 10, 10);
+        ctx.fillRect(0, canvas.height - 60, 10, 10);
+        ctx.fillRect(0, canvas.height - 70, 10, 10);
+        ctx.fillRect(0, canvas.height - 80, 10, 10);
+        ctx.fillRect(0, canvas.height - 90, 10, 10);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(canvas.width - 20, 10, 10, 10);
+        ctx.fillRect(0, canvas.height - 20, 10, 10);
+        ctx.fillRect(0, canvas.height - 30, 10, 10);
+        ctx.fillRect(0, canvas.height - 40, 10, 10);
+        ctx.fillRect(0, canvas.height - 50, 10, 10);
+        ctx.fillRect(0, canvas.height - 60, 10, 10);
+        ctx.fillRect(0, canvas.height - 70, 10, 10);
+        ctx.fillRect(0, canvas.height - 80, 10, 10);
+        ctx.fillRect(0, canvas.height - 90, 10, 10);
+    }
+
+    function updateGame() {
+      if (gameOver) return;
+
+      if (paused) return;
+
+      if (running) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(10, 10, 100, 20);
+        ctx.fillRect(10, canvas.height - 30, 100, 20);
+        ctx.fillRect(canvas.width - 10, canvas.height - 30, 100, 20);
+        ctx.fillRect(canvas.width - 10, 10, 20, 20);
+        ctx.fillRect(0, canvas.height - 30, 20, 20);
+        ctx.fillRect(0, canvas.height - 50, 20, 20);
+        ctx.fillRect(0, canvas.height - 60, 20, 20);
+        ctx.fillRect(0, canvas.height - 70, 20, 20);
+        ctx.fillRect(0, canvas.height - 80, 20, 20);
+        ctx.fillRect(0, canvas.height - 90, 20, 20);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(10, 10, 10, 10);
+        ctx.fillRect(10, canvas.height - 30, 10, 10);
+        ctx.fillRect(canvas.width - 10, canvas.height - 30, 10, 10);
+        ctx.fillRect(canvas.width - 10, 10, 10, 10);
+        ctx.fillRect(0, canvas.height - 30, 10, 10);
+        ctx.fillRect(0, canvas.height - 50, 10, 10);
+        ctx.fillRect(0, canvas.height - 60, 10, 10);
+        ctx.fillRect(0, canvas.height - 70, 10, 10);
+        ctx.fillRect(0, canvas.height - 80, 10, 10);
+        ctx.fillRect(0, canvas.height - 90, 10, 10);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(canvas.width - 20, 10, 10, 10);
+        ctx.fillRect(0, canvas.height - 20, 10, 10);
+        ctx.fillRect(0, canvas.height - 30, 10, 10);
+        ctx.fillRect(0, canvas.height - 40, 10, 10);
+        ctx.fillRect(0, canvas.height - 50, 10, 10);
+        ctx.fillRect(0, canvas.height - 60, 10, 10);
+        ctx.fillRect(0, canvas.height - 70, 10, 10);
+        ctx.fillRect(0, canvas.height - 80, 10, 10);
+        ctx.fillRect(0, canvas.height - 90, 10, 10);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(canvas.width - 20, 10, 10, 10);
+        ctx.fillRect(0, canvas.height - 20, 10, 10);
+        ctx.fillRect(0, canvas.height - 30, 10, 10);
+        ctx.fillRect(0, canvas.height - 40, 10, 10);
+        ctx.fillRect(0, canvas.height - 50, 10, 10);
+        ctx.fillRect(0, canvas.height - 60, 10, 10);
+        ctx.fillRect(0, canvas.height - 70, 10, 10);
+        ctx.fillRect(0, canvas.height - 80, 10, 10);
+        ctx.fillRect(0, canvas.height - 90, 10, 10);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(10, 10, 10, 10);
+        ctx.fillRect(10, canvas.height - 30, 10, 10);
+        ctx.fillRect(canvas.width - 10, canvas.height - 30, 10, 10);
+        ctx.fillRect(canvas.width - 10, 10, 10, 10);
+        ctx.fillRect(0, canvas.height - 30, 10, 10);
+        ctx.fillRect(0, canvas.height - 50, 10, 10);
+        ctx.fillRect(0, canvas.height - 60, 10, 10);
+        ctx.fillRect(0, canvas.height - 70, 10, 10);
+        ctx.fillRect(0, canvas.height - 80, 10, 10);
+        ctx.fillRect(0, canvas.height - 90, 10, 10);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(canvas.width - 20, 10, 10, 10);
+        ctx.fillRect(0, canvas.height - 20, 10, 10);
+        ctx.fillRect(0, canvas.height - 30, 10, 10);
+        ctx.fillRect(0, canvas.height - 40, 10, 10);
+        ctx.fillRect(0, canvas.height - 50, 10, 10);
+        ctx.fillRect(0, canvas.height - 60, 10, 10);
+        ctx.fillRect(0, canvas.height - 70, 10, 10);
+        ctx.fillRect(0, canvas.height - 80, 10, 10);
+        ctx.fillRect(0, canvas.height - 90, 10, 10);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(canvas.width - 20, 10, 10, 10);
+        ctx.fillRect(0, canvas.height - 20, 10, 10);
+        ctx.fillRect(0, canvas.height - 30, 10, 10);
+        ctx.fillRect(0, canvas.height - 40, 10, 10);
+        ctx.fillRect(0, canvas.height - 50, 10, 10);
+        ctx.fillRect(0, canvas.height - 60, 10, 10);
+        ctx.fillRect(0, canvas.height - 70, 10, 10);
+        ctx.fillRect(0, canvas.height - 80, 10, 10);
+        ctx.fillRect(0, canvas.height - 90, 10, 10);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(canvas.width - 20, 10, 10, 10);
+        ctx.fillRect(0, canvas.height - 20, 10, 10);
+        ctx.fillRect(0, canvas.height - 30, 10, 10);
+        ctx.fillRect(0, canvas.height - 40, 10, 10);
+        ctx.fillRect(0, canvas.height - 50, 10, 10);
+        ctx.fillRect(0, canvas.height - 60, 10, 10);
+        ctx.fillRect(0, canvas.height - 70, 10, 10);
+        ctx.fillRect(0, canvas.height - 80, 10, 10);
+        ctx.fillRect(0, canvas.height - 90, 10, 10);
+
+        ctx.fillStyle = 'black';
+        ctx.fillRect(10, 10, 10, 10);
+        ctx.fillRect(10, canvas.height - 30, 10, 10);
+        ctx.fillRect(canvas.width - 10, canvas.height - 30, 10, 10);
+        ctx.fillRect(canvas.width - 10, 10, 10, 10);
+        ctx.fillRect(0, canvas.height - 30, 10, 10);
+        ctx.fillRect(0, canvas.height - 50, 10, 10);
+        ctx.fillRect(0, canvas.height - 60, 10, 10);
+        ctx.fillRect(0, canvas.height - 70, 10, 10);
+        ctx.fillRect(0, canvas.height - 80, 10, 10);
+        ctx.fillRect(0, canvas.height - 90, 10, 10);
+        ctx.fillStyle = 'black';
+        ctx.fillRect(canvas.width - 20, 10, 10, 10);
+        ctx.fillRect(0, canvas.height - 20, 10, 10);
+        ctx.fillRect(0, canvas.height - 30, 10, 10);
+        ctx.fillRect(0, canvas.height - 40, 10, 10);
+        ctx.fillRect(0, canvas.height - 50, 10, 10);
+        ctx.fillRect(0, canvas.height - 60, 10,

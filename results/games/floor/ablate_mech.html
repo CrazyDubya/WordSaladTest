@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pong Game</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      border: 1px solid #000;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <script>
+    class PongGame {
+      let paddle1 = {
+        x: 100,
+        y: 100,
+        size: 50,
+        color: 'black',
+        speed: 5
+      };
+      let paddle2 = {
+        x: 700,
+        y: 100,
+        size: 50,
+        color: 'black',
+        speed: 5
+      };
+      let ball = {
+        x: 400,
+        y: 200,
+        size: 20,
+        color: 'black',
+        speed: 5
+      };
+      let ballDirection = {
+        x: 0,
+        y: 0
+      };
+      let score1 = 0;
+      let score2 = 0;
+      let ballAngle = Math.PI / 4;
+      let scoreText = document.getElementById('score1');
+      let scoreText2 = document.getElementById('score2');
+      let paddle1Left = document.getElementById('paddle1Left');
+      let paddle1Right = document.getElementById('paddle1Right');
+      let paddle2Left = document.getElementById('paddle2Left');
+      let paddle2Right = document.getElementById('paddle2Right');
+      let collision = false;
+      let reset = false;
+      let isFirst = true;
+      let input = document.addEventListener('keydown', handleInput);
+      let context = canvas.getContext('2d');
+      function draw() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.beginPath();
+        context.moveTo(0, canvas.height / 2);
+        context.lineTo(canvas.width, canvas.height / 2);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(canvas.width / 2, 0);
+        context.lineTo(canvas.width / 2, canvas.height);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(canvas.width / 2, canvas.height / 2 - 100);
+        context.lineTo(canvas.width / 2, canvas.height / 2 + 100);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(canvas.width / 2, canvas.height / 2 - 100);
+        context.lineTo(canvas.width / 2, canvas.height / 2 - 100);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(canvas.width / 2, canvas.height / 2 + 100);
+        context.lineTo(canvas.width / 2, canvas.height / 2 + 100);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(canvas.width / 2, canvas.height / 2 + 100);
+        context.lineTo(canvas.width / 2, canvas.height / 2 - 100);
+        context.stroke();
+        if (isFirst) {
+          drawBall();
+        } else {
+          drawBall();
+          ballAngle += 0.01;
+        }
+        updateBallPosition();
+        checkCollision();
+        if (ball.x < 0) {
+          reset = true;
+        } else if (ball.x > canvas.width) {
+          reset = true;
+        }
+        if (ball.y > canvas.height) {
+          reset = true;
+        }
+        if (reset) {
+          resetBall();
+          reset = false;
+          score1 = 0;
+          score2 = 0;
+        }
+        if (score1 >= 11) {
+          alert('Player 1 wins!');
+          reset = false;
+        } else if (score2 >= 11) {
+          alert('Player 2 wins!');
+          reset = false;
+        }
+        drawScore();
+        updateScore();
+        if (input.key === 'ArrowLeft' && paddle1Left.top > 0) {
+          paddle1Left.moveLeft(5);
+        } else if (input.key === 'ArrowRight' && paddle1Right.top > 0) {
+          paddle1Right.moveLeft(-5);
+        }
+        if (input.key === 'ArrowLeft' && paddle2Left.top > 0) {
+          paddle2Left.moveLeft(5);
+        } else if (input.key === 'ArrowRight' && paddle2Right.top > 0) {
+          paddle2Right.moveLeft(-5);
+        }
+      }
+      function drawBall() {
+        context.beginPath();
+        context.arc(ball.x, ball.y, ball.size, 0, 2 * Math.PI);
+        context.fillStyle = ball.color;
+        context.fill();
+      }
+      function updateBallPosition() {
+        ball.x += ballDirection.x;
+        ball.y += ballDirection.y;
+        if (ball.x < ball.size / 2 || ball.x > canvas.width - ball.size / 2) {
+          ballDirection.x *= -1;
+        }
+        if (ball.y > canvas.height - ball.size / 2) {
+          ballDirection.y *= -1;
+        }
+        ball.x = canvas.width / 2;
+        ball.y = canvas.height / 2;
+      }
+      function checkCollision() {
+        if (ball.x - paddle1.size / 2 < ball.size / 2 + paddle1.size / 2 && ball.y > paddle1.y && ball.y < paddle1.y + paddle1.size) {
+          ballDirection.x = -ballDirection.x;
+          collision = true;
+        } else if (ball.x + ball.size / 2 > paddle2.size / 2 && ball.y > paddle2.y && ball.y < paddle2.y + paddle2.size) {
+          ballDirection.x = -ballDirection.x;
+          collision = true;
+        }
+      }
+      function resetBall() {
+        ball.x = 400;
+        ball.y = 200;
+        ballDirection.x = Math.random() * 2 - 1;
+        ballDirection.y = Math.random() * 2 - 1;
+        reset = false;
+      }
+      function resetScore() {
+        score1 = 0;
+        score2 = 0;
+        paddle1Left.style.top = '100px';
+        paddle1Right.style.top = '100px';
+        paddle2Left.style.top = '100px';
+        paddle2Right.style.top = '100px';
+        scoreText.style.color = 'black';
+        scoreText2.style.color = 'black';
+      }
+      function drawScore() {
+        scoreText.textContent = `Score: ${score1} - ${score2}`;
+        scoreText.style.color = 'black';
+      }
+      function updateScore() {
+        if (score1 >= 11) {
+          score1 = 0;
+          score2 = 0;
+          paddle1Left.style.top = '100px';
+          paddle1Right.style.top = '100px';
+          paddle2Left.style.top = '100px';
+          paddle2Right.style.top = '100px';
+          scoreText.textContent = `Score: ${score1} - ${score2}`;
+          scoreText.style.color = 'black';
+        } else if (score2 >= 11) {
+          score2 = 0;
+          score1.style.top = '100px';
+          paddle1Left.style.top = '100px';
+          paddle1Right.style.top = '100px';
+          paddle2Left.style.top = '100px';
+          paddle2Right.style.top = '100px';
+          scoreText.textContent = `Score: ${score1} - ${score2}`;
+          scoreText.style.color = 'black';
+        }
+      }
+      function handleInput(event) {
+        if (event.key === 'ArrowLeft' && paddle1Left.top > 0) {
+          paddle1Left.moveLeft(5);
+        } else if (event.key === 'ArrowRight' && paddle1Right.top > 0) {
+          paddle1Right.moveLeft(-5);
+        } else if (event.key === 'ArrowUp' && paddle2Left.top > 0) {
+          paddle2Left.moveUp(5);
+        } else if (event.key === 'ArrowDown' && paddle2Right.top > 0) {
+          paddle2Right.moveUp(-5);
+        }
+      }
+    }
+    PongGame();
+  </script>
+</body>
+</html>

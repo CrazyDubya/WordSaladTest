@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pong Game</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #f0f0f0;
+      font-family: monospace;
+    }
+    #game-container {
+      width: 400px;
+      margin: 20px auto;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    #score {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    #scoreDisplay {
+      font-size: 48px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas" width="400" height="400"></canvas>
+    <div id="scoreDisplay"></div>
+    <div id="score">Score: <span id="score1">0</span> - <span id="score2">0</span></div>
+    <div id=" controls">
+      <label for="up">Up Arrow</label>
+      <input type="text" id="up" value="up" style="width: 40px; height: 20px;">
+      <label for="down">Down Arrow</label>
+      <input type="text" id="down" value="down" style="width: 40px; height: 20px;">
+      <label for="left">Left Arrow</label>
+      <input type="text" id="left" value="left" style="width: 40px; height: 20px;">
+      <label for="right">Right Arrow</label>
+      <input type="text" id="right" value="right" style="width: 40px; height: 20px;">
+    </div>
+    <script>
+      let frame = 0;
+      let score1 = 0;
+      let score2 = 0;
+      let ball = {
+        x: 200,
+        y: 200,
+        vx: 3,
+        vy: 3,
+        radius: 20,
+        color: 'black',
+        backColor: 'white',
+        score: 0
+      };
+      let paddle1 = {
+        x: 50,
+        y: 50,
+        vx: 5,
+        vy: 0,
+        radius: 20,
+        color: 'black',
+        backColor: 'white'
+      };
+      let paddle2 = {
+        x: 350,
+        y: 50,
+        vx: -5,
+        vy: 0,
+        radius: 20,
+        color: 'black',
+        backColor: 'white'
+      };
+      let ballSpeed = 5;
+      let ballDirection = 'right';
+      let lastTime = Date.now();
+      let clock = setInterval(() => {
+        frame++;
+        if (frame > 1000 / 60) {
+          frame = 0;
+        }
+        if (ball.x < 0 || ball.x > 380) {
+          ballDirection = ballDirection === 'right' ? 'left' : 'right';
+        }
+        ball.x += ballSpeed * ballDirection;
+        if (ball.x < 20) {
+          ball.x = 20;
+          ballDirection = ballDirection === 'right' ? 'left' : 'right';
+        }
+        if (ball.y < 20) {
+          ball.y += ballSpeed;
+          if (ball.y > 380) {
+            ball.y = 380;
+            ballDirection = ballDirection === 'right' ? 'left' : 'right';
+          }
+        }
+        if (ball.x < paddle1.x + paddle1.radius && ball.y > paddle1.y - paddle1.radius && ball.y < paddle1.y + paddle1.radius) {
+          ball.y = paddle1.y - paddle1.radius;
+        }
+        if (ball.x > paddle2.x - paddle2.radius && ball.y > paddle2.y - paddle2.radius && ball.y < paddle2.y + paddle2.radius) {
+          ball.y = paddle2.y - paddle2.radius;
+        }
+        if (ball.x - ball.radius < 0) {
+          score1++;
+          ball.x = 200;
+          ball.y = 200;
+          ballDirection = ballDirection === 'right' ? 'left' : 'right';
+        } else if (ball.x + ball.radius > 380) {
+          score2++;
+          ball.x = 200;
+          ball.y = 200;
+          ballDirection = ballDirection === 'right' ? 'left' : 'right';
+        }
+        document.getElementById('score1').innerHTML = score1;
+        document.getElementById('score2').innerHTML = score2;
+        document.getElementById('scoreDisplay').innerHTML = `Score: ${score1} - ${score2}`;
+        if (score1 > score2) {
+          alert('Player 1 wins!');
+        } else if (score2 > score1) {
+          alert('Player 2 wins!');
+        } else {
+          alert('It\'s a tie!');
+        }
+        if (Math.random() < 0.05) {
+          ball.x = 200;
+          ball.y = 200;
+          ballDirection = ballDirection === 'right' ? 'left' : 'right';
+        }
+        if (Math.random() < 0.05) {
+          let blip = document.createElement('span');
+          blip.style.position = 'absolute';
+          blip.style.left = `${ball.x + ball.radius}px`;
+          blip.style.top = `${ball.y}px`;
+          blip.style.width = `${ball.radius * 2}px`;
+          blip.style.height = `${ball.radius * 2}px`;
+          blip.style.background = 'black';
+          blip.style.borderRadius = '50%';
+          blip.style.opacity = 0;
+          blip.style.filter = 'blur(10px)';
+          blip.style.transition = 'all 0.1s ease-out';
+          blip.style.left = `${ball.x}px`;
+          blip.style.top = `${ball.y}px`;
+          blip.addEventListener('click', () => {
+            ball.x = 200;
+            ball.y = 200;
+            ballDirection = ballDirection === 'right' ? 'left' : 'right';
+            setBallPosition();
+          });
+          document.body.appendChild(blip);
+        }
+        document.getElementById('knob').style.transform = 'rotate(90deg)';
+        document.getElementById('knob').style.filter = 'none';
+        document.getElementById('knob').style.position = 'absolute';
+        document.getElementById('knob').style.left = `${paddle1.x}px`;
+        document.getElementById('knob').style.top = `${paddle1.y}px`;
+        document.getElementById('knob').style.width = '20px';
+        document.getElementById('knob').style.height = '20px';
+        document.getElementById('knob').style.background = 'black';
+        document.getElementById('knob').style.borderRadius = '50%';
+        document.getElementById('knob').style.transform = 'rotate(90deg)';
+        document.getElementById('knob').style.position = 'absolute';
+        document.getElementById('knob').style.left = `${paddle2.x}px`;
+        document.getElementById('knob').style.top = `${paddle2.y}px`;
+        document.getElementById('knob').style.width = '20px';
+        document.getElementById('knob').style.height = '20px';
+        document.getElementById('knob').style.background = 'black';
+        document.getElementById('knob').style.borderRadius = '50%';
+      }, 16);
+
+      function setBallPosition() {
+        ball.x = 200;
+        ball.y = 200;
+        ballDirection = ballDirection === 'right' ? 'left' : 'right';
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,159 @@
+{
+  "ablate_mech": {
+    "terms": 18,
+    "seed": 4242,
+    "lines": 211,
+    "complete": true,
+    "top_dup_line": 24
+  },
+  "ablate_img": {
+    "terms": 17,
+    "seed": 4242,
+    "lines": 166,
+    "complete": true,
+    "top_dup_line": 21
+  },
+  "ablate_hist": {
+    "terms": 15,
+    "seed": 4242,
+    "lines": 269,
+    "complete": true,
+    "top_dup_line": 26
+  },
+  "dose_05": {
+    "terms": 5,
+    "seed": 4242,
+    "lines": 176,
+    "complete": true,
+    "top_dup_line": 16
+  },
+  "dose_15": {
+    "terms": 15,
+    "seed": 4242,
+    "lines": 241,
+    "complete": true,
+    "top_dup_line": 33
+  },
+  "dose_30": {
+    "terms": 30,
+    "seed": 4242,
+    "lines": 182,
+    "complete": true,
+    "top_dup_line": 16
+  },
+  "_own_salad_terms": [
+    "Neon-lit arcades",
+    "pixelated collisions",
+    "hungry kids playing in silence",
+    "distorted sound effects",
+    "chunky cartridges",
+    "bright settings",
+    "high scores 1",
+    "2",
+    "3",
+    "victorious high-five",
+    "distractions",
+    "frustrated dad yelling",
+    "pent-up energy",
+    "cheesy jumps",
+    "bouncy animations",
+    "surreal world",
+    "Pizza Hut and arcades a blur",
+    "former gamer's nostalgia",
+    "pixel linger",
+    "backwards laughed",
+    "one pixel having done the chicken dance",
+    "incoming waves of frustrating feedback",
+    "skips and restarts",
+    "chunky",
+    "pixels too crowded",
+    "pure frustration",
+    "record bookers shaking hands with friends in carefree silence",
+    "some pause zen",
+    "scoring sighs of perfect game 500"
+  ],
+  "rep_cold_7": {
+    "terms": 0,
+    "seed": 7,
+    "lines": 174,
+    "complete": true,
+    "top_dup_line": 20
+  },
+  "rep_own_7": {
+    "terms": 29,
+    "seed": 7,
+    "lines": 411,
+    "complete": false,
+    "top_dup_line": 28
+  },
+  "rep_claude_7": {
+    "terms": 50,
+    "seed": 7,
+    "lines": 762,
+    "complete": false,
+    "top_dup_line": 113
+  },
+  "rep_cold_13": {
+    "terms": 0,
+    "seed": 13,
+    "lines": 175,
+    "complete": true,
+    "top_dup_line": 21
+  },
+  "rep_own_13": {
+    "terms": 29,
+    "seed": 13,
+    "lines": 612,
+    "complete": true,
+    "top_dup_line": 42
+  },
+  "rep_claude_13": {
+    "terms": 50,
+    "seed": 13,
+    "lines": 312,
+    "complete": true,
+    "top_dup_line": 29
+  },
+  "rep_cold_21": {
+    "terms": 0,
+    "seed": 21,
+    "lines": 13,
+    "complete": true,
+    "top_dup_line": 1
+  },
+  "rep_own_21": {
+    "terms": 29,
+    "seed": 21,
+    "lines": 673,
+    "complete": true,
+    "top_dup_line": 70
+  },
+  "rep_claude_21": {
+    "terms": 50,
+    "seed": 21,
+    "lines": 417,
+    "complete": true,
+    "top_dup_line": 48
+  },
+  "rep_cold_99": {
+    "terms": 0,
+    "seed": 99,
+    "lines": 179,
+    "complete": true,
+    "top_dup_line": 25
+  },
+  "rep_own_99": {
+    "terms": 29,
+    "seed": 99,
+    "lines": 254,
+    "complete": true,
+    "top_dup_line": 26
+  },
+  "rep_claude_99": {
+    "terms": 50,
+    "seed": 99,
+    "lines": 299,
+    "complete": true,
+    "top_dup_line": 14
+  }
+}

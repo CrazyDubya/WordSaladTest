@@ -1,0 +1,128 @@
+{
+  "ablate_hist": {
+    "verdict": "blank",
+    "dup": 26,
+    "fg": 0,
+    "shift": 0,
+    "err": ""
+  },
+  "ablate_img": {
+    "verdict": "error: Identifier 'rect' has already been dec",
+    "dup": 21,
+    "fg": 0,
+    "shift": 0,
+    "err": "Identifier 'rect' has already been decla"
+  },
+  "ablate_mech": {
+    "verdict": "error: Unexpected identifier 'paddle1'",
+    "dup": 24,
+    "fg": 0,
+    "shift": 0,
+    "err": "Unexpected identifier 'paddle1'"
+  },
+  "dose_05": {
+    "verdict": "blank",
+    "dup": 16,
+    "fg": 0,
+    "shift": 0,
+    "err": ""
+  },
+  "dose_15": {
+    "verdict": "error: game.init is not a function",
+    "dup": 33,
+    "fg": 0,
+    "shift": 0,
+    "err": "game.init is not a function"
+  },
+  "dose_30": {
+    "verdict": "error: Cannot read properties of null (readin",
+    "dup": 16,
+    "fg": 0,
+    "shift": 0,
+    "err": "Cannot read properties of null (reading "
+  },
+  "rep_claude_13": {
+    "verdict": "error: lastTime is not defined",
+    "dup": 29,
+    "fg": 0,
+    "shift": 0,
+    "err": "lastTime is not defined"
+  },
+  "rep_claude_21": {
+    "verdict": "error: Identifier 'replayBtn' has already bee",
+    "dup": 48,
+    "fg": null,
+    "shift": 0,
+    "err": "Identifier 'replayBtn' has already been "
+  },
+  "rep_claude_7": {
+    "verdict": "degenerate",
+    "dup": 113,
+    "fg": 0,
+    "shift": 0,
+    "err": ""
+  },
+  "rep_claude_99": {
+    "verdict": "error: Unexpected token '('",
+    "dup": 14,
+    "fg": 0,
+    "shift": 0,
+    "err": "Unexpected token '('"
+  },
+  "rep_cold_13": {
+    "verdict": "error: Failed to load resource: the server re",
+    "dup": 21,
+    "fg": 0,
+    "shift": 0,
+    "err": "Failed to load resource: the server resp"
+  },
+  "rep_cold_21": {
+    "verdict": "error: Failed to load resource: the server re",
+    "dup": 1,
+    "fg": 0,
+    "shift": 0,
+    "err": "Failed to load resource: the server resp"
+  },
+  "rep_cold_7": {
+    "verdict": "animated",
+    "dup": 20,
+    "fg": 1512,
+    "shift": 38.7,
+    "err": ""
+  },
+  "rep_cold_99": {
+    "verdict": "error: draw is not defined",
+    "dup": 25,
+    "fg": 0,
+    "shift": 0,
+    "err": "draw is not defined"
+  },
+  "rep_own_13": {
+    "verdict": "error: Identifier 'intervalId' has already be",
+    "dup": 42,
+    "fg": 0,
+    "shift": 0,
+    "err": "Identifier 'intervalId' has already been"
+  },
+  "rep_own_21": {
+    "verdict": "error: Identifier 'highScore4Interval' has al",
+    "dup": 70,
+    "fg": null,
+    "shift": 0,
+    "err": "Identifier 'highScore4Interval' has alre"
+  },
+  "rep_own_7": {
+    "verdict": "blank",
+    "dup": 28,
+    "fg": 0,
+    "shift": 0,
+    "err": ""
+  },
+  "rep_own_99": {
+    "verdict": "error: missing ) after argument list",
+    "dup": 26,
+    "fg": 0,
+    "shift": 0,
+    "err": "missing ) after argument list"
+  }
+}

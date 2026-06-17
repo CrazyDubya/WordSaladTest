@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+        #score {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        #score1, #score2 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        #cpu {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div id="controls">
+        <input type="number" id="score1" value="0" min="0" max="100" step="1" style="width: 100%; height: 30px;">
+        <input type="number" id="score2" value="0" min="0" max="100" step="1" style="width: 100%; height: 30px;">
+    </div>
+    <button id="reset">Reset</button>
+    <button id="play">Play</button>
+    <script>
+        let score1 = 0, score2 = 0;
+        let cpuScore = 0;
+        let paddle1 = document.getElementById('score1');
+        let paddle2 = document.getElementById('score2');
+        let resetButton = document.getElementById('reset');
+        let playButton = document.getElementById('play');
+        let score1Element = document.getElementById('score1');
+        let score2Element = document.getElementById('score2');
+        let cpuElement = document.getElementById('cpu');
+        let paddle1Element = document.getElementById('paddle1');
+        let paddle2Element = document.getElementById('paddle2');
+        let computerElement = document.getElementById('cpu');
+        let canvas = document.getElementById('gameCanvas');
+        let ctx = canvas.getContext('2d');
+        let clock = new Date();
+        let gameStarted = false;
+        let ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            vx: 4,
+            vy: 4,
+            dx: 4,
+            dy: -4,
+            radius: 10,
+            color: 'black',
+            transparent: false
+        };
+        let ballSpeed = 5;
+        let ballSpeed2 = 4;
+        let ball2 = {
+            x: 0,
+            y: canvas.height / 2,
+            vx: 4,
+            vy: 4,
+            dx: -4,
+            dy: -4,
+            radius: 10,
+            color: 'black',
+            transparent: false
+        };
+        let player1 = {
+            x: 0,
+            y: 0,
+            paddle: {
+                x: 100,
+                y: 100,
+                width: 10,
+                height: 100,
+                transparent: false
+            }
+        };
+        let player2 = {
+            x: canvas.width - 100,
+            y: 100,
+            paddle: {
+                x: 100,
+                y: 100,
+                width: 10,
+                height: 100,
+                transparent: false
+            }
+        };
+        let cpu = {
+            x: canvas.width / 2,
+            y: 100,
+            paddle: {
+                x: 100,
+                y: 100,
+                width: 10,
+                height: 100,
+                transparent: false
+            }
+        };
+        let score1Element1 = document.getElementById('score1');
+        let score2Element1 = document.getElementById('score2');
+        let cpuElement1 = document.getElementById('cpu');
+        let score1Element2 = document.getElementById('score2');
+        let score2Element2 = document.getElementById('score2');
+        let render = function() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'black';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(score1, canvas.width / 2, 20);
+            ctx.fillText(score2, canvas.width / 2, 20);
+            ctx.fillText(cpuScore, 20, 50);
+            if (cpuScore > 0) {
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(cpu.x + 50, cpu.y + 20, 30, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(cpu.x - 50, cpu.y + 20, 30, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            if (gameStarted) {
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, ball.radius + 5, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(ball2.x, ball2.y, ball2.radius + 5, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillStyle = ball.color;
+                ctx.beginPath();
+                ctx.arc(ball.x + ball.radius, ball.y + ball.radius, ball.radius, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillStyle = ball2.color;
+                ctx.beginPath();
+                ctx.arc(ball2.x + ball2.radius, ball2.y + ball2.radius, ball2.radius, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillStyle = 'black';
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                let paddle1Angle = Math.atan2(player1.y - ball.y, player1.x - ball.x);
+                let paddle2Angle = Math.atan2(player2.y - ball.y, player2.x - ball.x);
+                ctx.fillText(player1.x + ball.x + paddle1.x + ball.radius, paddle1.y + ball.y + paddle1.height / 2, 100);
+                ctx.fillText(player2.x + ball.x + paddle2.x + ball.radius, paddle2.y + ball.y + paddle2.height / 2, 200);
+                ctx.fillText(cpu.x + ball.x + paddle.cpu.x + ball.radius, cpu.y + ball.y + paddle.cpu.y + ball.radius, 300);
+                if (ball.x > ball2.x + ball2.radius - 10) {
+                    cpuScore++;
+                    score2Element2.textContent = cpuScore;
+                    cpuElement1.textContent = '0';
+                    score1Element1.textContent = '0';
+                    ball.x = canvas.width / 2;
+                    ball.y = canvas.height / 2;
+                    ball.vx = 4;
+                    ball.vy = 4;
+                    ball2.x = 0;
+                    ball2.y = canvas.height / 2;
+                    ball2.vx = -4;
+                    ball2.vy = -4;
+                    ballSpeed = 5;
+                    ballSpeed2 = 4;
+                } else if (ball.x < ball2.x + ball2.radius + 10) {
+                    cpuScore++;
+                    score2Element2.textContent = cpuScore;
+                    cpuElement1.textContent = '0';
+                    score1Element1.textContent = '0';
+                    ball.x = canvas.width / 2;
+                    ball.y = canvas.height / 2;
+                    ball.vx = 4;
+                    ball.vy = 4;
+                    ball2.x = 0;
+                    ball2.y = canvas.height / 2;
+                    ball2.vx = -4;
+                    ball2.vy = -4;
+                    ballSpeed = 5;
+                    ballSpeed2 = 4;
+                } else {
+                    ball.x = ball.x + ball.vx;
+                    ball.y = ball.y + ball.vy;
+                }
+            } else {
+                ball.x = canvas.width / 2;
+                ball.y = canvas.height / 2;
+                ball.vx = 0;
+                ball.vy = 0;
+            }
+            requestAnimationFrame(render);
+            let time = new Date();
+            if (time - clock > 1000 / 60) {
+                clock = new Date();
+                if (score1 > score2) {
+                    cpuScore++;
+                    score2Element1.textContent = cpuScore;
+                    score1Element1.textContent = '0';
+                    score2Element2.textContent = '0';
+                    ball.x = canvas.width / 2;
+                    ball.y = canvas.height / 2;
+                    ball.vx = 4;
+                    ball.vy = 4;
+                    ball2.x = 0;
+                    ball2.y = canvas.height / 2;
+                    ball2.vx = -4;
+                    ball2.vy = -4;
+                    ballSpeed = 5;
+                    ballSpeed2 = 4;
+                } else if (score2 > score1) {
+                    cpuScore++;
+                    score1Element1.textContent = '0';
+                    score1Element2.textContent = cpuScore;
+                    score2Element2.textContent = '0';
+                    ball.x = canvas.width / 2;
+                    ball.y = canvas.height / 2;
+                    ball.vx = 4;
+                    ball.vy = 4;
+                    ball2.x = 0;
+                    ball2.y = canvas.height / 2;
+                    ball2.vx = -4;
+                    ball2.vy = -4;
+                    ballSpeed = 5;
+                    ballSpeed2 = 4;
+                } else {
+                    cpuScore++;
+                    score1Element1.textContent = '0';
+                    score1Element2.textContent = cpuScore;
+                    score2Element2.textContent = '0';
+                    ball.x = canvas.width / 2;
+                    ball.y = canvas.height / 2;
+                    ball.vx = 4;
+                    ball.vy = 4;
+                    ball2.x = 0;
+                    ball2.y = canvas.height / 2;
+                    ball2.vx = -4;
+                    ball2.vy = -4;
+                    ballSpeed = 5;
+                    ballSpeed2 = 4;
+                    cpuElement1.textContent = cpuScore;
+                    cpuElement2.textContent = '0';
+                }
+            }
+        };
+        let clearInterval(renderInterval);
+        let renderInterval = setInterval(render, 16);
+        paddle1Element.addEventListener('click', function() {
+            if (ball.x - paddle1.width / 2 > paddle1.x && ball.x + ball.radius < paddle1.x + paddle1.width) {
+                ball.x = paddle1.x + ball.radius;
+                ball.vx = -ball.dx;
+            } else if (ball.x + ball.radius > paddle1.x + paddle1.width && ball.x - ball.radius < paddle1.x) {
+                ball.x = paddle1.x - ball.radius;
+                ball.vx = ball.dx;
+            }
+        });
+        paddle2Element.addEventListener('click', function() {
+            if (ball.x - paddle2.width / 2 > paddle2.x && ball.x + ball.radius < paddle2.x + paddle2.width) {
+                ball.x = paddle2.x + ball.radius;
+                ball.vx = -ball.dx;
+            } else if (ball.x + ball.radius > paddle2.x + paddle2.width && ball.x - ball.radius < paddle2.x) {
+                ball.x = paddle2.x - ball.radius;
+                ball.vx = ball.dx;
+            }
+        });
+        computerElement.addEventListener('click', function() {
+            ball.x = Math.random() * (canvas.width - ball2.radius * 2);
+            ball.y = Math.random() * (canvas.height - ball2.radius * 2);
+            ball.vx = ballSpeed;
+            ball.vy = ballSpeed2;
+        });
+        resetButton.addEventListener('click', function() {
+            gameStarted = false;
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.vx = 0;
+            ball.vy = 0;
+            cpuScore = 0;
+            score1Element1.textContent = '0';
+            score1Element2.textContent = '0';
+            score2Element1.textContent = '0';
+            score2Element2.textContent = '0';
+            cpuElement1.textContent = '';
+            cpuElement2.textContent = '';
+            paddle1Element.textContent = '';
+            paddle2Element.textContent = '';
+            paddle1.x = canvas.width / 2;
+            paddle2.x = canvas.width - paddle2.width;
+            paddle2.y = canvas.height / 2;
+            paddle2.y = canvas.height / 2;
+        });
+    </script>
+</body>
+</html>
