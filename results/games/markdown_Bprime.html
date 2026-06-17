@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Editor</title>
+    <style>
+        body {
+            font-family: monospace;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .editor {
+            width: 49%;
+            height: 600px;
+            float: left;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            overflow-y: auto;
+        }
+        .preview {
+            width: 49%;
+            height: 600px;
+            float: right;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            overflow-y: auto;
+        }
+        .toolbar {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        .toolbar button {
+            margin-right: 10px;
+        }
+        .word-count {
+            float: right;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="toolbar">
+            <button id="bold-btn">Bold</button>
+            <button id="italic-btn">Italic</button>
+            <button id="link-btn">Link</button>
+            <button id="image-btn">Image</button>
+            <button id="heading-btn">Heading</button>
+            <button id="unordered-list-btn">Unordered List</button>
+            <button id="ordered-list-btn">Ordered List</button>
+            <span class="word-count">Word count: <span id="word-count">0</span></span>
+        </div>
+        <div class="editor">
+            <textarea id="editor" placeholder="Type your markdown text here..."></textarea>
+        </div>
+        <div class="preview">
+            <div id="preview"></div>
+        </div>
+    </div>
+
+    <script>
+        const editor = document.getElementById('editor');
+        const preview = document.getElementById('preview');
+        const wordCountSpan = document.getElementById('word-count');
+
+        editor.addEventListener('input', updatePreview);
+        editor.addEventListener('input', updateWordCount);
+
+        function updatePreview() {
+            const markdownText = editor.value;
+            const html = markdownToHtml(markdownText);
+            preview.innerHTML = html;
+        }
+
+        function updateWordCount() {
+            const text = editor.value;
+            const words = text.trim().split(/\s+/).length;
+            wordCountSpan.textContent = words;
+        }
+
+        function markdownToHtml(markdownText) {
+            const html = markdownText
+                .replace(/^### (.*)$/gm, '<h3>$1</h3>')
+                .replace(/^## (.*)$/gm, '<h2>$1</h2>')
+                .replace(/^# (.*)$/gm, '<h1>$1</h1>')
+                .replace(/\*\*(.*)\*\*/g, '<b>$1</b>')
+                .replace(/\*(.*)\*/g, '<i>$1</i>')
+                .replace(/\[(.*)\]\((.*)\)/g, '<a href="$2">$1</a>')
+                .replace(/!\[(.*)\]\((.*)\)/g, '<img src="$2" alt="$1">')
+                .replace(/^-(.*)$/gm, '<li>$1</li>')
+                .replace(/^(\d+)\. (.*)$/gm, '<li>$2</li>');
+            return html;
+        }
+
+        document.getElementById('bold-btn').addEventListener('click', () => {
+            const selection = editor.value.substring(editor.selectionStart, editor.selectionEnd);
+            editor.value = editor.value.replace(selection, `**${selection}**`);
+            editor.focus();
+        });
+
+        document.getElementById('italic-btn').addEventListener('click', () => {
+            const selection = editor.value.substring(editor.selectionStart, editor.selectionEnd);
+            editor.value = editor.value.replace(selection, `*${selection}*`);
+            editor.focus();
+        });
+
+        document.getElementById('link-btn').addEventListener('click', () => {
+            const selection = editor.value.substring(editor.selectionStart, editor.selectionEnd);
+            editor.value = editor.value.replace(selection, `[${selection}](https://example.com)`);
+            editor.focus();
+        });
+
+        document.getElementById('image-btn').addEventListener('click', () => {
+            const selection = editor.value.substring(editor.selectionStart, editor.selectionEnd);
+            editor.value = editor.value.replace(selection, `![${selection}](https://example.com/image.jpg)`);
+            editor.focus();
+        });
+
+        document.getElementById('heading-btn').addEventListener('click', () => {
+            const selection = editor.value.substring(editor.selectionStart, editor.selectionEnd);
+            editor.value = editor.value.replace(selection, `# ${selection}`);
+            editor.focus();
+        });
+
+        document.getElementById('unordered-list-btn').addEventListener('click', () => {
+            const selection = editor.value.substring(editor.selectionStart, editor.selectionEnd);
+            editor.value = editor.value.replace(selection, `- ${selection}`);
+            editor.focus();
+        });
+
+        document.getElementById('ordered-list-btn').addEventListener('click', () => {
+            const selection = editor.value.substring(editor.selectionStart, editor.selectionEnd);
+            editor.value = editor.value.replace(selection, `1. ${selection}`);
+            editor.focus();
+        });
+    </script>
+</body>
+</html>

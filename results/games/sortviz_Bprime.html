@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorting Algorithm Visualizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        #canvas {
+            border: 1px solid #000;
+        }
+        .controls {
+            margin-top: 20px;
+        }
+        .button {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="800" height="400"></canvas>
+    <div class="controls">
+        <button class="button" id="shuffle-button">Shuffle</button>
+        <button class="button" id="bubble-sort-button">Bubble Sort</button>
+        <button class="button" id="quick-sort-button">Quick Sort</button>
+        <button class="button" id="merge-sort-button">Merge Sort</button>
+        <input type="range" id="speed-control" min="1" max="100" value="50">
+        <label for="speed-control">Speed: <span id="speed-value">50</span></label>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const shuffleButton = document.getElementById('shuffle-button');
+        const bubbleSortButton = document.getElementById('bubble-sort-button');
+        const quickSortButton = document.getElementById('quick-sort-button');
+        const mergeSortButton = document.getElementById('merge-sort-button');
+        const speedControl = document.getElementById('speed-control');
+        const speedValue = document.getElementById('speed-value');
+
+        let array = [];
+        let speed = 50;
+        let sorting = false;
+
+        // Initialize array
+        for (let i = 0; i < 100; i++) {
+            array.push(Math.floor(Math.random() * 400));
+        }
+
+        // Draw array
+        function drawArray() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const barWidth = canvas.width / array.length;
+            for (let i = 0; i < array.length; i++) {
+                ctx.fillStyle = 'rgb(0, 0, 255)';
+                ctx.fillRect(i * barWidth, canvas.height - array[i], barWidth, array[i]);
+            }
+        }
+
+        // Shuffle array
+        function shuffleArray() {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Bubble sort
+        async function bubbleSort() {
+            sorting = true;
+            for (let i = 0; i < array.length; i++) {
+                for (let j = 0; j < array.length - i - 1; j++) {
+                    if (array[j] > array[j + 1]) {
+                        [array[j], array[j + 1]] = [array[j + 1], array[j]];
+                        drawArray();
+                        await new Promise(resolve => setTimeout(resolve, 100 - speed));
+                    }
+                }
+            }
+            sorting = false;
+        }
+
+        // Quick sort
+        async function quickSort(start, end) {
+            if (start >= end) return;
+            const pivotIndex = await partition(start, end);
+            await quickSort(start, pivotIndex - 1);
+            await quickSort(pivotIndex + 1, end);
+        }
+
+        async function partition(start, end) {
+            const pivot = array[end];
+            let i = start - 1;
+            for (let j = start; j < end; j++) {
+                if (array[j] < pivot) {
+                    i++;
+                    [array[i], array[j]] = [array[j], array[i]];
+                    drawArray();
+                    await new Promise(resolve => setTimeout(resolve, 100 - speed));
+                }
+            }
+            [array[i + 1], array[end]] = [array[end], array[i + 1]];
+            drawArray();
+            await new Promise(resolve => setTimeout(resolve, 100 - speed));
+            return i + 1;
+        }
+
+        // Merge sort
+        async function mergeSort(start, end) {
+            if (start >= end) return;
+            const mid = Math.floor((start + end) / 2);
+            await mergeSort(start, mid);
+            await mergeSort(mid + 1, end);
+            await merge(start, mid, end);
+        }
+
+        async function merge(start, mid, end) {
+            const left = array.slice(start, mid + 1);
+            const right = array.slice(mid + 1, end + 1);
+            let i = 0, j = 0, k = start;
+            while (i < left.length && j < right.length) {
+                if (left[i] < right[j]) {
+                    array[k] = left[i];
+                    i++;
+                } else {
+                    array[k] = right[j];
+                    j++;
+                }
+                k++;
+                drawArray();
+                await new Promise(resolve => setTimeout(resolve, 100 - speed));
+            }
+            while (i < left.length) {
+                array[k] = left[i];
+                i++;
+                k++;
+                drawArray();
+                await new Promise(resolve => setTimeout(resolve, 100 - speed));
+            }
+            while (j < right.length) {
+                array[k] = right[j];
+                j++;
+                k++;
+                drawArray();
+                await new Promise(resolve => setTimeout(resolve, 100 - speed));
+            }
+        }
+
+        // Event listeners
+        shuffleButton.addEventListener('click', () => {
+            if (!sorting) {
+                shuffleArray();
+                drawArray();
+            }
+        });
+
+        bubbleSortButton.addEventListener('click', async () => {
+            if (!sorting) {
+                await bubbleSort();
+            }
+        });
+
+        quickSortButton.addEventListener('click', async () => {
+            if (!sorting) {
+                await quickSort(0, array.length - 1);
+                sorting = false;
+            }
+        });
+
+        mergeSortButton.addEventListener('click', async () => {
+            if (!sorting) {
+                await mergeSort(0, array.length - 1);
+                sorting = false;
+            }
+        });
+
+        speedControl.addEventListener('input', () => {
+            speed = parseInt(speedControl.value);
+            speedValue.textContent = speed;
+        });
+
+        // Initialize
+        drawArray();
+    </script>
+</body>
+</html>

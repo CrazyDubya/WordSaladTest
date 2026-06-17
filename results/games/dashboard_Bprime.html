@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Data Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        #dashboard {
+            width: 80%;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #filter-control {
+            margin-bottom: 20px;
+        }
+        #charts {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .chart {
+            width: 45%;
+            margin: 10px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+        .tooltip {
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            font-size: 14px;
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="dashboard">
+        <h1>Interactive Data Dashboard</h1>
+        <div id="filter-control">
+            <label for="category">Filter by Category:</label>
+            <select id="category" onchange="updateCharts()">
+                <option value="all">All</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+            </select>
+        </div>
+        <div id="charts">
+            <div class="chart" id="bar-chart">
+                <canvas id="bar-canvas" width="400" height="200"></canvas>
+                <div class="tooltip" id="bar-tooltip"></div>
+            </div>
+            <div class="chart" id="line-chart">
+                <canvas id="line-canvas" width="400" height="200"></canvas>
+                <div class="tooltip" id="line-tooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample dataset
+        const data = [
+            { category: 'A', value: 10 },
+            { category: 'A', value: 20 },
+            { category: 'B', value: 30 },
+            { category: 'B', value: 40 },
+            { category: 'C', value: 50 },
+            { category: 'C', value: 60 }
+        ];
+
+        // Filter control
+        const categorySelect = document.getElementById('category');
+
+        // Chart canvases
+        const barCanvas = document.getElementById('bar-canvas');
+        const lineCanvas = document.getElementById('line-canvas');
+
+        // Chart contexts
+        const barCtx = barCanvas.getContext('2d');
+        const lineCtx = lineCanvas.getContext('2d');
+
+        // Tooltip elements
+        const barTooltip = document.getElementById('bar-tooltip');
+        const lineTooltip = document.getElementById('line-tooltip');
+
+        // Update charts function
+        function updateCharts() {
+            const category = categorySelect.value;
+            const filteredData = data.filter(item => item.category === category || category === 'all');
+
+            // Bar chart
+            const barData = {
+                labels: filteredData.map(item => item.category),
+                datasets: [{
+                    label: 'Values',
+                    data: filteredData.map(item => item.value),
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            };
+            const barOptions = {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                },
+                tooltips: {
+                    callbacks: {
+                        label: (tooltipItem, data) => {
+                            const value = data.datasets[0].data[tooltipItem.index];
+                            return `Value: ${value}`;
+                        }
+                    }
+                }
+            };
+            new Chart(barCtx, {
+                type: 'bar',
+                data: barData,
+                options: barOptions
+            });
+
+            // Line chart
+            const lineData = {
+                labels: filteredData.map(item => item.category),
+                datasets: [{
+                    label: 'Values',
+                    data: filteredData.map(item => item.value),
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            };
+            const lineOptions = {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                },
+                tooltips: {
+                    callbacks: {
+                        label: (tooltipItem, data) => {
+                            const value = data.datasets[0].data[tooltipItem.index];
+                            return `Value: ${value}`;
+                        }
+                    }
+                }
+            };
+            new Chart(lineCtx, {
+                type: 'line',
+                data: lineData,
+                options: lineOptions
+            });
+        }
+
+        // Initialize charts
+        updateCharts();
+
+        // Add event listeners for tooltips
+        barCanvas.addEventListener('mousemove', (e) => {
+            const rect = barCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const tooltip = barTooltip;
+            tooltip.style.left = `${x}px`;
+            tooltip.style.top = `${y}px`;
+            tooltip.style.visibility = 'visible';
+        });
+        barCanvas.addEventListener('mouseout', () => {
+            barTooltip.style.visibility = 'hidden';
+        });
+        lineCanvas.addEventListener('mousemove', (e) => {
+            const rect = lineCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const tooltip = lineTooltip;
+            tooltip.style.left = `${x}px`;
+            tooltip.style.top = `${y}px`;
+            tooltip.style.visibility = 'visible';
+        });
+        lineCanvas.addEventListener('mouseout', () => {
+            lineTooltip.style.visibility = 'hidden';
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+</body>
+</html>

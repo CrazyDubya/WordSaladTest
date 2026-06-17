@@ -34,15 +34,24 @@ TARGETS = {
                "merge), animated bars, a speed control, and a shuffle button.",
 }
 
+# Free-association topics for the salad (the *subject*, not a build spec).
+TOPICS = {
+    "pong": "Pong, the arcade video game",
+    "tetris": "Tetris, the falling-block puzzle game",
+    "markdown": "Markdown and writing in a plain-text editor",
+    "dashboard": "data dashboards and charts",
+    "sortviz": "sorting algorithms",
+}
 
-def salad(desc):
+
+def salad(topic):
     raw = cf.run(MODEL, [{"role": "user", "content":
-        f"List 50 single words or short phrases relevant to building a polished, "
-        f"high-quality version of this: {desc} Cover UX, interactivity, visual design, "
-        f"state management, edge cases, accessibility, performance, and code structure. "
-        f"Output ONLY a comma-separated list, no numbering."}],
-        max_tokens=240, temperature=0.8, seed=11)
-    return [t.strip() for t in raw.replace("\n", ",").split(",") if t.strip()][:50]
+        f"Write a 50 to 100 word word salad about {topic}. Free-associate: imagery, "
+        f"mood, sensory detail, history, culture, mechanics -- whatever the topic "
+        f"evokes. Output ONLY a comma-separated list of words and short phrases, no "
+        f"sentences, no numbering."}],
+        max_tokens=400, temperature=1.0, seed=11)
+    return [t.strip() for t in raw.replace("\n", ",").split(",") if t.strip()][:100]
 
 
 def _clean(code):
@@ -63,7 +72,7 @@ def generate(desc, terms=None):
 
 def build(target):
     desc = TARGETS[target]
-    terms = salad(desc)
+    terms = salad(TOPICS[target])
     A = generate(desc)
     B = generate(desc, terms)
     os.makedirs("results/games", exist_ok=True)
