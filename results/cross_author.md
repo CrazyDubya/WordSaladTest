@@ -47,22 +47,43 @@ Every salad helps over control (~+.10), but **no author beats another**: Claude 
 Claude vs 70B p=1.00. Fact-retrieval (OpenBookQA) doesn't care who wrote the associations; broad
 commonsense reasoning does.
 
-## Verdict
+## Full attenuation curve — Claude's salad across all four answerers
 
-**Salad author is a real lever — but gated by *(weak answerer) × (association-heavy task)*.** A
-stronger author (70B or Claude) lifts the knowledge-starved 1B by ~10–15 pts on CommonsenseQA, where
-broad associative context substitutes for missing knowledge; it does nothing extra on OpenBookQA,
-where the task is one specific retrieved fact. This is the Generated-Knowledge-Prompting effect
-(Liu et al. 2022) sharpened to the author axis: *whose* knowledge you borrow matters, when you have a
-gap and the task rewards breadth.
+Holding the *author* fixed (Claude) and sweeping the **answerer** (same 500-item sample, salads reused;
+arms in `cross_{1b,3b,8b,70b}_claude.jsonl`):
 
-The same gating predicts most of a full author×answerer matrix would be **null**: the cross-model run
-already showed the 70B's salad gave the *3B* no lift (its own knowledge sufficed), so for capable
-answerers the author effect should vanish regardless of who writes the salad. Targeted follow-ups
-(full-CSQA Claude-vs-70B on the 1B; an 8B answerer to confirm the effect disappears) test that
-directly instead of grinding the grid.
+| answerer | bench | control | own salad | **Claude** | Claude − control | Claude − own |
+|---|---|---|---|---|---|---|
+| 1B  | OpenBookQA    | .305 | .430 | .410 | **+.105** (p<.001) | −.020 (.57) |
+| 1B  | CommonsenseQA | .417 | .463 | **.563** | **+.147** (p<.001) | **+.100** (p<.001) |
+| 3B  | OpenBookQA    | .745 | .755 | .780 | +.035 (.27) | +.025 (.41) |
+| 3B  | CommonsenseQA | .713 | .727 | .757 | +.043 (.13) | +.030 (.25) |
+| 8B  | OpenBookQA    | .800 | .825 | .860 | **+.060** (.02) | +.035 (.17) |
+| 8B  | CommonsenseQA | .703 | .743 | .790 | **+.087** (.001) | +.047 (.07) |
+| 70B | OpenBookQA    | .930 | .930 | .935 | +.005 (1.0) | +.005 (1.0) |
+| 70B | CommonsenseQA | .843 | .853 | .847 | +.003 (1.0) | −.007 (.82) |
 
-**Caveats:** Claude's salads are model generations (not seed-reproducible like the Llama arms — the
-salads themselves are committed in [`cross_1b_claude_salads.json`](cross_1b_claude_salads.json) for
-exact reuse). CommonsenseQA cell is n=300 (pilot); the Claude-vs-70B gap (+3.7, p=.14) is unresolved
-at this n. Sampled item ids in [`cross_1b_claude_sample.json`](cross_1b_claude_sample.json).
+## Verdict — two effects, two different decays
+
+**1. Borrow-a-salad (Claude − control):** a frontier-authored salad helps *any non-saturated* answerer —
+significant at the 1B (+.10/+.15) **and the 8B** (+.06/+.09), positive-but-ns at the 3B, and **zero at
+the 70B ceiling** (+.005/+.003). The benefit is killed by *headroom* (gone once the model saturates),
+not by answerer strength as such.
+
+**2. Author premium (Claude − own salad):** beating the model's *own* salad is large only at the **1B**
+(+.100 on CommonsenseQA, p<.001), fades to marginal at the 8B (+.047, p=.07) and ns at the 3B, and is
+zero at the 70B. So **who writes the salad matters most exactly where the answerer is least able to
+write a good one itself.**
+
+This **revises** the pilot's first guess that the author effect would "vanish for capable answerers" —
+it does **not**: Claude's salad significantly beats control even at the 8B, *where the 8B's own salad
+never did* (main-run B−A was ns for 8B). What attenuates is the *premium over self-authoring*; the
+borrow-a-salad benefit persists until the model saturates. As always, the task matters — CommonsenseQA
+(broad association) shows larger effects than OpenBookQA (one retrieved fact).
+
+**Caveats:** Claude's salads are model generations (not seed-reproducible like the Llama arms; committed
+in [`cross_1b_claude_salads.json`](cross_1b_claude_salads.json) for exact reuse — the same 500 salads
+were reused across all four answerers). Cells are n=200 (OBQA) / 300 (CSQA); the 3B's positive-but-ns
+deltas and the 3B<8B dip on Claude−control are within noise (both 3B ps non-significant). The
+Claude-vs-70B *author* comparison on the 1B (+3.7, p=.14 at n=300) remains unresolved at this n.
+Sampled ids in [`cross_1b_claude_sample.json`](cross_1b_claude_sample.json).
