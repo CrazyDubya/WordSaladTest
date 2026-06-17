@@ -4,21 +4,22 @@ Generated Knowledge Prompting (Liu et al. 2022) found that knowledge produced by
 *large* model helps a *small* inference model far more than the small model's own
 knowledge. This tests the keyword-salad version of that claim:
 
-  the 3B model answers each question primed with the **70B**'s related-term salad
+  an answerer model answers each question primed with the **70B**'s related-term salad
   (arm X), compared against its own arms from the main run:
       A  control (no preamble)
-      B  3B's OWN salad
+      B  answerer's OWN salad
       X  70B's salad   <- new
       C  placebo (count-matched unrelated words)
 
 Headline comparison is X vs B: is a stronger model's salad meaningfully better?
 
 Reuses the 70B salads already in results/raw.jsonl (from `run.py --models llama-3.3-70b`);
-generates one on the fly only if missing. Resumable via results/cross.jsonl.
+generates one on the fly only if missing. Output is per-answerer: results/cross_<tag>.jsonl
+(tag = "1b", "3b", ...). Resumable.
 
 Usage:
-  CF_API_TOKEN=... CF_ACCOUNT_ID=... python cross.py [--limit N]
-  python cross.py --report-only
+  CF_API_TOKEN=... CF_ACCOUNT_ID=... python cross.py --answerer llama-3.2-1b
+  python cross.py --answerer llama-3.2-3b --report-only
 """
 import argparse
 import json
@@ -30,10 +31,17 @@ import data
 import grade
 import run
 
-ANSWERER = run.MODELS["llama-3.2-3b"]
 SALAD_SRC = run.MODELS["llama-3.3-70b"]
 BENCHMARKS = ["openbookqa", "commonsenseqa"]
-CROSS = os.path.join(run.RESULTS, "cross.jsonl")
+
+# set in main()
+ANSWERER = None
+TAG = None
+CROSS = None
+
+
+def _tag(answerer_key):
+    return answerer_key.split("-")[-1]  # llama-3.2-1b -> 1b
 
 
 def _salads_from_raw(model):
@@ -92,8 +100,8 @@ def run_cross(limit=None):
         print(f"note: generated {missing} 70B salads on the fly (not in raw.jsonl)")
 
 
-def _raw_3b_correct():
-    """{(bench, arm): {id: bool}} for the 3B model's A/B/C in raw.jsonl."""
+def _raw_answerer_correct():
+    """{(bench, arm): {id: bool}} for the answerer's A/B/C in raw.jsonl."""
     out = {}
     with open(run.RAW) as f:
         for line in f:
@@ -104,17 +112,17 @@ def _raw_3b_correct():
 
 
 def report():
-    base = _raw_3b_correct()
-    xcorr = {}  # (bench): {id: bool}
+    base = _raw_answerer_correct()
+    xcorr = {}
     with open(CROSS) as f:
         for line in f:
             r = json.loads(line)
             xcorr.setdefault(r["bench"], {})[r["id"]] = bool(r["correct"])
 
-    md = ["# Cross-Model Salad — 3B answerer, 70B salad\n",
-          "Arm **X** = 3B answers primed with the **70B**'s salad. Compared to the 3B's own "
-          "arms (A control · B own salad · C placebo) from the main run.\n",
-          "Headline: **X vs B** — does a stronger model's salad beat the 3B's own?\n"]
+    md = [f"# Cross-Model Salad — {TAG} answerer, 70B salad\n",
+          f"Arm **X** = the {TAG} model answers primed with the **70B**'s salad. Compared to its "
+          "own arms (A control · B own salad · C placebo) from the main run.\n",
+          "Headline: **X vs B** — does a stronger model's salad beat the answerer's own?\n"]
     summary = {}
     for bench in BENCHMARKS:
         cols = {"A": base.get((bench, "A"), {}), "B": base.get((bench, "B"), {}),
@@ -128,13 +136,13 @@ def report():
         md.append(f"\n## {bench}  (n={n})\n")
         md.append("| arm | source | acc | 95% CI |")
         md.append("|---|---|---|---|")
-        labels = {"A": "control", "B": "3B own salad", "X": "70B salad", "C": "placebo"}
+        labels = {"A": "control", "B": f"{TAG} own salad", "X": "70B salad", "C": "placebo"}
         for k in ("A", "B", "X", "C"):
             lo, hi = grade.wilson(sum(cols[k][i] for i in ids), n)
             md.append(f"| {k} | {labels[k]} | {acc[k]:.3f} | [{lo:.3f}, {hi:.3f}] |")
             summary[f"{bench}|{k}"] = {"acc": acc[k], "n": n, "ci": [lo, hi]}
         md.append("")
-        for x, y, note in [("B", "X", "70B salad vs 3B's own salad"),
+        for x, y, note in [("B", "X", f"70B salad vs {TAG}'s own salad"),
                            ("A", "X", "70B salad vs control"),
                            ("C", "X", "70B salad vs placebo")]:
             m = grade.mcnemar([cols[x][i] for i in ids], [cols[y][i] for i in ids])
@@ -142,19 +150,27 @@ def report():
             md.append(f"- **{x}→{y}** ({note}): X fixed {m['b01']}, broke {m['b10']}; "
                       f"Δacc {acc[y] - acc[x]:+.3f}; McNemar p = {m['p']:.4f}")
 
-    with open(os.path.join(run.RESULTS, "cross_summary.json"), "w") as f:
+    with open(os.path.join(run.RESULTS, f"cross_{TAG}_summary.json"), "w") as f:
         json.dump(summary, f, indent=2)
-    with open(os.path.join(run.RESULTS, "cross_report.md"), "w") as f:
+    with open(os.path.join(run.RESULTS, f"cross_{TAG}_report.md"), "w") as f:
         f.write("\n".join(md) + "\n")
-    print("wrote results/cross_report.md and results/cross_summary.json")
+    print(f"wrote results/cross_{TAG}_report.md and results/cross_{TAG}_summary.json")
     print("\n".join(md))
 
 
 def main():
+    global ANSWERER, TAG, CROSS
     ap = argparse.ArgumentParser()
+    ap.add_argument("--answerer", default="llama-3.2-3b",
+                    help="short model key from run.MODELS")
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--report-only", action="store_true")
     args = ap.parse_args()
+    if args.answerer not in run.MODELS:
+        raise SystemExit(f"unknown answerer; choose from {list(run.MODELS)}")
+    ANSWERER = run.MODELS[args.answerer]
+    TAG = _tag(args.answerer)
+    CROSS = os.path.join(run.RESULTS, f"cross_{TAG}.jsonl")
     if args.report_only:
         report()
         return

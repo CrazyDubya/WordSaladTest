@@ -118,29 +118,42 @@ Main run: **4 models × 2 benchmarks × 3 arms = 20,652 graded answers** (paired
 ### Cross-model salad — does a *stronger* model's salad help a weaker answerer?
 
 Generated Knowledge Prompting (Liu et al. 2022) found big-model *knowledge* helps small models more
-than their own. We tested the keyword-salad version: the **3B** answers primed with the **70B's**
-salad (arm **X**), vs its own arms. See [`cross.py`](cross.py) / [`results/cross_report.md`](results/cross_report.md).
+than their own. We tested the keyword-salad version: a weak model answers primed with the **70B's**
+salad (arm **X**), vs its own arms. The 70B salads are genuinely different — longer (53 vs ~22–35
+terms), broader, **~11% term overlap** (Jaccard 0.11) with the small model's own. Run with
+[`cross.py --answerer <model>`](cross.py); reports in `results/cross_<tag>_report.md`.
 
-| benchmark | A ctrl | B 3B-own | X 70B-salad | C placebo | X−B (p) | X−A (p) | X−C (p) |
-|-----------|--------|----------|-------------|-----------|---------|---------|---------|
-| OpenBookQA    | .748 | .768 | .774 | .708 | +.006 (.78) | +.026 (.16) | **+.066** (.0003) |
-| CommonsenseQA | .736 | .732 | .741 | .702 | +.009 (.42) | +.005 (.73) | **+.039** (.0014) |
+**3B answerer** — the 70B salad gives **no lift over the 3B's own** (X−B ns on both):
 
-The 70B salads were genuinely different — longer (53 vs 35 terms), broader, **11% term overlap**
-(Jaccard 0.11) with the 3B's own — yet they gave the 3B **no significant lift over its own salad**
-(X−B ≈ +.01, p .4–.8). They still beat the random placebo (X−C significant), so relevance holds; but
-**salad *quality* is not the lever.** The bottleneck is the answerer's capacity to use the
-priming, not how good the terms are — the 3B already knows most of these answers, so richer terms
-fill no gap.
+| benchmark | A ctrl | B 3B-own | X 70B-salad | C placebo | X−B (p) | X−C (p) |
+|-----------|--------|----------|-------------|-----------|---------|---------|
+| OpenBookQA    | .748 | .768 | .774 | .708 | +.006 (.78) | **+.066** (.0003) |
+| CommonsenseQA | .736 | .732 | .741 | .702 | +.009 (.42) | **+.039** (.0014) |
 
-**Overall verdict.** Related-term priming "activates relevant pathways" only in the narrow regime
-where the model is *knowledge-limited*. The relevance signal is real where there's headroom (related
-beats random up to 8B), but the *net* gain over simply answering exists only on the smallest model,
-and a *better* salad from a stronger model does not change that. Priming a capable model is neutral
-at best.
+**1B answerer** — the result *splits by task*:
 
-All per-item records are in [`results/`](results/): `raw.jsonl` (main run), `cross.jsonl`
-(cross-salad), plus generated `report.md` / `summary.json` / `cross_report.md` / `cross_summary.json`.
+| benchmark | A ctrl | B 1B-own | X 70B-salad | C placebo | X−B (p) | X−A (p) |
+|-----------|--------|----------|-------------|-----------|---------|---------|
+| OpenBookQA    | .354 | .444 | .434 | .350 | −.010 (.58) | **+.080** (.0000) |
+| CommonsenseQA | .387 | .417 | **.500** | .375 | **+.083** (.0000) | **+.113** (.0000) |
+
+**Salad quality *is* a lever — but only in a specific regime.** For the 1B on CommonsenseQA, the
+70B's salad lifts accuracy from .417 (its own salad) to **.500** — +8.3 pts from *changing only who
+wrote the salad*, the genuine Generated-Knowledge-Prompting effect (a strong model's knowledge
+helping a weak one). But it appears **only** when the answerer has a real knowledge gap (1B, not 3B)
+**and** the task rewards broad associative context (commonsense) rather than one specific retrieved
+fact (OpenBookQA, where even the 1B sees no benefit from the richer salad). The 3B null was a
+masked case: the 3B already knew the commonsense answers, so a better salad filled no gap.
+
+**Overall verdict.** Related-term priming is a **knowledge-gap crutch** with three gates: it helps
+only where (1) the model is knowledge-limited (net benefit at 1B; neutral by 3B; inert at 70B), (2)
+the terms are *relevant* (related beats a matched placebo up to 8B, gone at the 70B ceiling), and
+(3) — for salad *quality* to matter — the task rewards breadth of association. Hit all three (1B ×
+CommonsenseQA × 70B-authored salad) and you get a double-digit gain; miss any one and the effect
+shrinks to neutral. Priming a capable model is neutral at best.
+
+All per-item records are in [`results/`](results/): `raw.jsonl` (main run), `cross_3b.jsonl` /
+`cross_1b.jsonl` (cross-salad), plus generated `report.md` / `summary.json` / `cross_<tag>_report.md`.
 
 ## License
 
