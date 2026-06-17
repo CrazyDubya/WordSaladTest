@@ -16,18 +16,20 @@ import cf
 
 MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 GENRES = {
-    "noir": "noir / hardboiled detective",
-    "cosmic": "cosmic horror (Lovecraftian)",
+    "noir": "noir / hardboiled detective fiction",
+    "cosmic": "cosmic horror / Lovecraftian weird fiction",
 }
 SEED = 4242  # shared by A and B within a genre -> isolates the priming
 
 
 def genre_salad(genre):
     raw = cf.run(MODEL, [{"role": "user", "content":
-        f"List 50 single words or short phrases evocative of the {genre} genre — its "
-        f"imagery, mood, and vocabulary. Output ONLY a comma-separated list, no "
-        f"sentences, no numbering."}], max_tokens=220, temperature=0.8, seed=11)
-    return [t.strip() for t in raw.replace("\n", ",").split(",") if t.strip()][:50]
+        f"Write a word salad of 40 to 60 short phrases about {genre}. Free-associate: "
+        f"imagery, mood, atmosphere, objects, settings, character types, sensory detail, "
+        f"weather, light -- whatever the genre evokes. Output ONLY a comma-separated list "
+        f"of words and short phrases, no sentences, no numbering."}],
+        max_tokens=500, temperature=1.0, seed=11)
+    return [t.strip() for t in raw.replace("\n", ",").split(",") if t.strip()][:60]
 
 
 def story(genre, terms=None):
