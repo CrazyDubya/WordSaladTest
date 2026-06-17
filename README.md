@@ -169,6 +169,38 @@ dramatizing a scene. Same lesson as the QA ceiling: priming a capable model is a
 Reproducible generation in [`story.py`](story.py); full writeup, stories, and panel verdict in
 [`results/stories/creative_writing.md`](results/stories/creative_writing.md).
 
+## Code-generation coda — the lever flips sign
+
+Does feature-salad priming change the 70B's *code*? It writes a single-file HTML/Canvas **Pong**
+cold (A) vs. primed with ~50 "polished Pong" terms (B), same seed. Code is partly objective — both
+were **run headless** (load clean, game loop animates), then a blind 3-judge panel scored them.
+
+**Both run. The result splits cleanly by axis:**
+
+| axis | winner | vote |
+|---|---|---|
+| Code quality / correctness | **cold (A)** | 3–0 |
+| Design / feature completeness | **primed (B)** | 3–0 |
+| UI / UX | **primed (B)** | 3–0 |
+
+This is the **first arm where priming the capable 70B clearly helped** — but only on scope. The salad
+acted as a **feature checklist**: B added a win condition, pause, game-over modal, and restart (winning
+design + UX) while A stayed a bare canvas — yet B spread effort thinner and lost correctness (`setInterval`
+vs `requestAnimationFrame`, an unclamped player paddle, dead code, a CSS anchoring bug). Reproducible via
+[`game.py`](game.py); full writeup in [`results/games/pong.md`](results/games/pong.md).
+
+**The unifying lever.** Across all arms, the salad pulls the model toward **checklist coverage** — and
+the sign of that effect depends entirely on what the domain rewards:
+
+| domain | salad acts as | priming a capable model |
+|---|---|---|
+| QA (one right answer) | irrelevant noise | neutral → negative |
+| Prose (craft = restraint) | a vocabulary checklist | worse (trope-stuffing; 12/12 against) |
+| Code (product = features) | a feature checklist | more complete, less correct |
+
+Priming doesn't make the model smarter; it redirects effort toward **breadth**. That helps where coverage
+is the goal and hurts where depth or restraint is.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

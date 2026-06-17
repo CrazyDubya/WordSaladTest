@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game</title>
+    <style>
+        /* Add some basic styling to our game */
+        body {
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #game-container {
+            width: 800px;
+            height: 600px;
+            border: 1px solid #000;
+            margin: 40px auto;
+        }
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        #score-display {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 36px;
+            font-weight: bold;
+        }
+        #game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #game-over-screen button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        #pause-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="score-display">0 - 0</div>
+        <div id="game-over-screen">
+            <h1>Game Over!</h1>
+            <button id="restart-button">Restart</button>
+            <button id="quit-button">Quit</button>
+        </div>
+        <button id="pause-button">Pause</button>
+    </div>
+
+    <script>
+        // Get the canvas element
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set the canvas dimensions
+        canvas.width = 800;
+        canvas.height = 600;
+
+        // Define some constants
+        const BALL_SIZE = 20;
+        const PADDLE_WIDTH = 10;
+        const PADDLE_HEIGHT = 100;
+        const FPS = 60;
+        const BALL_SPEED = 5;
+        const PADDLE_SPEED = 5;
+
+        // Define the game variables
+        let ballX = canvas.width / 2;
+        let ballY = canvas.height / 2;
+        let ballVelX = BALL_SPEED;
+        let ballVelY = BALL_SPEED;
+        let paddle1Y = canvas.height / 2 - PADDLE_HEIGHT / 2;
+        let paddle2Y = canvas.height / 2 - PADDLE_HEIGHT / 2;
+        let score1 = 0;
+        let score2 = 0;
+        let gameOver = false;
+        let paused = false;
+
+        // Define the AI opponent
+        let aiDifficulty = 'normal';
+
+        // Main game loop
+        function update() {
+            if (!gameOver && !paused) {
+                // Move the paddles
+                if (aiDifficulty === 'easy') {
+                    paddle2Y += (ballY - paddle2Y - PADDLE_HEIGHT / 2) * 0.05;
+                } else if (aiDifficulty === 'hard') {
+                    paddle2Y += (ballY - paddle2Y - PADDLE_HEIGHT / 2) * 0.1;
+                } else {
+                    paddle2Y += (ballY - paddle2Y - PADDLE_HEIGHT / 2) * 0.075;
+                }
+
+                // Move the ball
+                ballX += ballVelX;
+                ballY += ballVelY;
+
+                // Collision detection with paddles
+                if (ballX <= PADDLE_WIDTH && ballY >= paddle1Y && ballY <= paddle1Y + PADDLE_HEIGHT) {
+                    ballVelX = -ballVelX;
+                } else if (ballX + BALL_SIZE >= canvas.width - PADDLE_WIDTH && ballY >= paddle2Y && ballY <= paddle2Y + PADDLE_HEIGHT) {
+                    ballVelX = -ballVelX;
+                }
+
+                // Collision detection with top and bottom of screen
+                if (ballY <= 0 || ballY + BALL_SIZE >= canvas.height) {
+                    ballVelY = -ballVelY;
+                }
+
+                // Scoring
+                if (ballX <= 0) {
+                    score2++;
+                    ballX = canvas.width / 2;
+                    ballY = canvas.height / 2;
+                    ballVelX = BALL_SPEED;
+                    ballVelY = BALL_SPEED;
+                } else if (ballX + BALL_SIZE >= canvas.width) {
+                    score1++;
+                    ballX = canvas.width / 2;
+                    ballY = canvas.height / 2;
+                    ballVelX = -BALL_SPEED;
+                    ballVelY = -BALL_SPEED;
+                }
+
+                // Game over condition
+                if (score1 >= 11 || score2 >= 11) {
+                    gameOver = true;
+                }
+            }
+
+            // Draw everything
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, paddle1Y, PADDLE_WIDTH, PADDLE_HEIGHT);
+            ctx.fillRect(canvas.width - PADDLE_WIDTH, paddle2Y, PADDLE_WIDTH, PADDLE_HEIGHT);
+            ctx.fillRect(ballX, ballY, BALL_SIZE, BALL_SIZE);
+            ctx.font = '36px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = 'black';
+            document.getElementById('score-display').innerText = score1 + ' - ' + score2;
+
+            // Show game over screen
+            if (gameOver) {
+                document.getElementById('game-over-screen').style.display = 'flex';
+            }
+        }
+
+        // Handle keyboard input
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'w') {
+                paddle1Y -= PADDLE_SPEED;
+            } else if (e.key === 's') {
+                paddle1Y += PADDLE_SPEED;
+            } else if (e.key === 'p') {
+                paused = !paused;
+            }
+        });
+
+        // Handle mouse input
+        document.getElementById('restart-button').addEventListener('click', () => {
+            gameOver = false;
+            score1 = 0;
+            score2 = 0;
+            ballX = canvas.width / 2;
+            ballY = canvas.height / 2;
+            ballVelX = BALL_SPEED;
+            ballVelY = BALL_SPEED;
+            paddle1Y = canvas.height / 2 - PADDLE_HEIGHT / 2;
+            paddle2Y = canvas.height / 2 - PADDLE_HEIGHT / 2;
+            document.getElementById('game-over-screen').style.display = 'none';
+        });
+
+        document.getElementById('quit-button').addEventListener('click', () => {
+            window.location.href = 'https://www.google.com';
+        });
+
+        document.getElementById('pause-button').addEventListener('click', () => {
+            paused = !paused;
+        });
+
+        // Set up the game loop
+        setInterval(update, 1000 / FPS);
+    </script>
+</body>
+</html>

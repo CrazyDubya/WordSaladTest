@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game</title>
+    <style>
+        /* Add some basic styling to our game */
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pongCanvas" width="600" height="400"></canvas>
+    <script>
+        // Get the canvas element
+        const canvas = document.getElementById('pongCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set the canvas dimensions
+        canvas.width = 600;
+        canvas.height = 400;
+
+        // Define some colors
+        const bgColor = 'black';
+        const paddleColor = 'white';
+        const ballColor = 'white';
+        const textColor = 'white';
+
+        // Define the paddle properties
+        const paddleWidth = 10;
+        const paddleHeight = 100;
+        const paddleSpeed = 5;
+
+        // Define the ball properties
+        const ballSize = 10;
+        const ballSpeed = 5;
+
+        // Define the scoring properties
+        let playerScore = 0;
+        let cpuScore = 0;
+
+        // Define the paddle positions
+        let playerPaddleY = canvas.height / 2 - paddleHeight / 2;
+        let cpuPaddleY = canvas.height / 2 - paddleHeight / 2;
+
+        // Define the ball position and velocity
+        let ballX = canvas.width / 2;
+        let ballY = canvas.height / 2;
+        let ballVelX = ballSpeed;
+        let ballVelY = ballSpeed;
+
+        // Main game loop
+        function draw() {
+            // Clear the canvas
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the player paddle
+            ctx.fillStyle = paddleColor;
+            ctx.fillRect(0, playerPaddleY, paddleWidth, paddleHeight);
+
+            // Draw the CPU paddle
+            ctx.fillStyle = paddleColor;
+            ctx.fillRect(canvas.width - paddleWidth, cpuPaddleY, paddleWidth, paddleHeight);
+
+            // Draw the ball
+            ctx.fillStyle = ballColor;
+            ctx.fillRect(ballX, ballY, ballSize, ballSize);
+
+            // Draw the scores
+            ctx.font = '24px Arial';
+            ctx.fillStyle = textColor;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText(`Player: ${playerScore}`, 10, 10);
+            ctx.textAlign = 'right';
+            ctx.fillText(`CPU: ${cpuScore}`, canvas.width - 10, 10);
+
+            // Update the ball position
+            ballX += ballVelX;
+            ballY += ballVelY;
+
+            // Collision with the top and bottom of the canvas
+            if (ballY < 0 || ballY > canvas.height - ballSize) {
+                ballVelY = -ballVelY;
+            }
+
+            // Collision with the player paddle
+            if (ballX < paddleWidth && ballY > playerPaddleY && ballY < playerPaddleY + paddleHeight) {
+                ballVelX = -ballVelX;
+            }
+
+            // Collision with the CPU paddle
+            if (ballX > canvas.width - paddleWidth - ballSize && ballY > cpuPaddleY && ballY < cpuPaddleY + paddleHeight) {
+                ballVelX = -ballVelX;
+            }
+
+            // Collision with the left and right of the canvas (scoring)
+            if (ballX < 0) {
+                cpuScore++;
+                ballX = canvas.width / 2;
+                ballY = canvas.height / 2;
+                ballVelX = ballSpeed;
+                ballVelY = ballSpeed;
+            } else if (ballX > canvas.width - ballSize) {
+                playerScore++;
+                ballX = canvas.width / 2;
+                ballY = canvas.height / 2;
+                ballVelX = -ballSpeed;
+                ballVelY = -ballSpeed;
+            }
+
+            // Update the CPU paddle position
+            if (cpuPaddleY + paddleHeight / 2 < ballY) {
+                cpuPaddleY += paddleSpeed;
+            } else if (cpuPaddleY + paddleHeight / 2 > ballY) {
+                cpuPaddleY -= paddleSpeed;
+            }
+
+            // Ensure the paddles don't go off the screen
+            if (playerPaddleY < 0) {
+                playerPaddleY = 0;
+            } else if (playerPaddleY > canvas.height - paddleHeight) {
+                playerPaddleY = canvas.height - paddleHeight;
+            }
+
+            if (cpuPaddleY < 0) {
+                cpuPaddleY = 0;
+            } else if (cpuPaddleY > canvas.height - paddleHeight) {
+                cpuPaddleY = canvas.height - paddleHeight;
+            }
+
+            // Request the next frame
+            requestAnimationFrame(draw);
+        }
+
+        // Handle keyboard input
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'w') {
+                playerPaddleY -= paddleSpeed;
+            } else if (e.key === 's') {
+                playerPaddleY += paddleSpeed;
+            }
+        });
+
+        // Start the game loop
+        draw();
+    </script>
+</body>
+</html>
