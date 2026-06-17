@@ -6,3 +6,11 @@ __pycache__/
 .DS_Store
 .venv/
 venv/
+
+# code-test scaffolding (not artifacts)
+results/games/chart.js
+results/games/*.test.html
+results/games/*.fixed.html
+results/games/blind/
+results/games/.playwright-mcp/
+results/games/gen.log

@@ -189,6 +189,16 @@ design + UX) while A stayed a bare canvas — yet B spread effort thinner and lo
 vs `requestAnimationFrame`, an unclamped player paddle, dead code, a CSS anchoring bug). Reproducible via
 [`game.py`](game.py); full writeup in [`results/games/pong.md`](results/games/pong.md).
 
+**Four harder targets** (Tetris, Markdown editor, Dashboard, Sortviz) sharpen this — each run headless
+*and* blind-judged ([`results/games/advanced.md`](results/games/advanced.md)). The Pong trade degrades
+with complexity: the salad's extra ambition increasingly ships **broken** code — **of the 4 advanced
+targets the primed build is the broken one in 3** (Tetris never locks pieces, Dashboard's filter
+crashes, Sortviz won't even parse). Cold won code-quality in 4/5 code targets; primed still won UI/UX in
+4/5. *Exception:* the Markdown editor, where the salad's "accessibility/state" terms led the model to the
+right primitive (`<textarea>` + a11y) and priming **improved** correctness. So "breadth up, depth down"
+becomes **"breadth up, depth collapses"** — unless the salad surfaces a better approach the model can
+still land.
+
 **The unifying lever.** Across all arms, the salad pulls the model toward **checklist coverage** — and
 the sign of that effect depends entirely on what the domain rewards:
 

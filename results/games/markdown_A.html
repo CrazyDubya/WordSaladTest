@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Editor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #editor {
+            width: 45%;
+            height: 600px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            float: left;
+        }
+        #preview {
+            width: 45%;
+            height: 600px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            float: right;
+        }
+        #toolbar {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        #toolbar button {
+            margin-right: 10px;
+        }
+        #word-count {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="toolbar">
+        <button id="bold-btn">Bold</button>
+        <button id="italic-btn">Italic</button>
+        <button id="link-btn">Link</button>
+        <button id="image-btn">Image</button>
+        <button id="heading-btn">Heading</button>
+        <button id="unordered-list-btn">Unordered List</button>
+        <button id="ordered-list-btn">Ordered List</button>
+    </div>
+    <div id="editor"></div>
+    <div id="preview"></div>
+    <div id="word-count">Word count: 0</div>
+
+    <script>
+        let editor = document.getElementById('editor');
+        let preview = document.getElementById('preview');
+        let wordCount = document.getElementById('word-count');
+        let boldBtn = document.getElementById('bold-btn');
+        let italicBtn = document.getElementById('italic-btn');
+        let linkBtn = document.getElementById('link-btn');
+        let imageBtn = document.getElementById('image-btn');
+        let headingBtn = document.getElementById('heading-btn');
+        let unorderedListBtn = document.getElementById('unordered-list-btn');
+        let orderedListBtn = document.getElementById('ordered-list-btn');
+
+        editor.contentEditable = 'true';
+
+        function updatePreview() {
+            let markdown = editor.innerHTML;
+            let html = markdown.replace(/__(.*?)__/g, '<strong>$1</strong>')
+                              .replace(/_(.*?)_/g, '<em>$1</em>')
+                              .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>')
+                              .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">')
+                              .replace(/^(#+) (.*)$/gm, function(match, p1, p2) {
+                                  return '<h' + p1.length + '>' + p2 + '</h' + p1.length + '>';
+                              })
+                              .replace(/^- (.*)$/gm, '<li>$1</li>')
+                              .replace(/^(#+) (.*)$/gm, function(match, p1, p2) {
+                                  return '<h' + p1.length + '>' + p2 + '</h' + p1.length + '>';
+                              });
+            preview.innerHTML = html;
+            wordCount.textContent = 'Word count: ' + markdown.trim().split(/\s+/).length;
+        }
+
+        editor.addEventListener('input', updatePreview);
+
+        boldBtn.addEventListener('click', function() {
+            document.execCommand('insertText', false, '__' + document.getSelection().toString() + '__');
+            updatePreview();
+        });
+
+        italicBtn.addEventListener('click', function() {
+            document.execCommand('insertText', false, '_' + document.getSelection().toString() + '_');
+            updatePreview();
+        });
+
+        linkBtn.addEventListener('click', function() {
+            let link = prompt('Enter link URL:');
+            document.execCommand('insertText', false, '[' + document.getSelection().toString() + '](' + link + ')');
+            updatePreview();
+        });
+
+        imageBtn.addEventListener('click', function() {
+            let link = prompt('Enter image URL:');
+            document.execCommand('insertText', false, '![' + document.getSelection().toString() + '](' + link + ')');
+            updatePreview();
+        });
+
+        headingBtn.addEventListener('click', function() {
+            document.execCommand('insertText', false, '# ' + document.getSelection().toString());
+            updatePreview();
+        });
+
+        unorderedListBtn.addEventListener('click', function() {
+            document.execCommand('insertText', false, '- ' + document.getSelection().toString());
+            updatePreview();
+        });
+
+        orderedListBtn.addEventListener('click', function() {
+            document.execCommand('insertText', false, '1. ' + document.getSelection().toString());
+            updatePreview();
+        });
+    </script>
+</body>
+</html>

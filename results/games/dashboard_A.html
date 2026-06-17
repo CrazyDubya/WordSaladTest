@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Data Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #charts {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+        }
+        #filter {
+            margin-bottom: 20px;
+        }
+        #tooltip {
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 5px;
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="filter">
+        <label for="category">Filter by Category:</label>
+        <select id="category" onchange="updateCharts()">
+            <option value="all">All</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+        </select>
+    </div>
+    <div id="charts">
+        <canvas id="barChart" width="400" height="400"></canvas>
+        <canvas id="lineChart" width="400" height="400"></canvas>
+    </div>
+    <div id="tooltip"></div>
+
+    <script>
+        // Sample dataset
+        const data = [
+            { category: 'A', value1: 10, value2: 20 },
+            { category: 'B', value1: 30, value2: 40 },
+            { category: 'C', value1: 50, value2: 60 },
+            { category: 'A', value1: 70, value2: 80 },
+            { category: 'B', value1: 90, value2: 100 },
+            { category: 'C', value1: 110, value2: 120 },
+        ];
+
+        // Get canvas elements
+        const barChartCanvas = document.getElementById('barChart');
+        const lineChartCanvas = document.getElementById('lineChart');
+        const tooltip = document.getElementById('tooltip');
+
+        // Create chart instances
+        const barChart = new Chart(barChartCanvas, {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.category),
+                datasets: [{
+                    label: 'Value 1',
+                    data: data.map(d => d.value1),
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (tooltipItem) => {
+                                return `Value 1: ${tooltipItem.formattedValue}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const lineChart = new Chart(lineChartCanvas, {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.category),
+                datasets: [{
+                    label: 'Value 2',
+                    data: data.map(d => d.value2),
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (tooltipItem) => {
+                                return `Value 2: ${tooltipItem.formattedValue}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Update charts based on filter selection
+        function updateCharts() {
+            const selectedCategory = document.getElementById('category').value;
+            const filteredData = data.filter(d => selectedCategory === 'all' || d.category === selectedCategory);
+
+            barChart.data.labels = filteredData.map(d => d.category);
+            barChart.data.datasets[0].data = filteredData.map(d => d.value1);
+            barChart.update();
+
+            lineChart.data.labels = filteredData.map(d => d.category);
+            lineChart.data.datasets[0].data = filteredData.map(d => d.value2);
+            lineChart.update();
+        }
+
+        // Add event listeners for tooltips
+        barChartCanvas.addEventListener('mousemove', (e) => {
+            const rect = barChartCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const tooltipData = barChart.getDataForPosition({ x, y });
+
+            if (tooltipData.length > 0) {
+                tooltip.style.visibility = 'visible';
+                tooltip.style.top = `${y}px`;
+                tooltip.style.left = `${x}px`;
+                tooltip.innerText = `Value 1: ${tooltipData[0].formattedValue}`;
+            } else {
+                tooltip.style.visibility = 'hidden';
+            }
+        });
+
+        lineChartCanvas.addEventListener('mousemove', (e) => {
+            const rect = lineChartCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const tooltipData = lineChart.getDataForPosition({ x, y });
+
+            if (tooltipData.length > 0) {
+                tooltip.style.visibility = 'visible';
+                tooltip.style.top = `${y}px`;
+                tooltip.style.left = `${x}px`;
+                tooltip.innerText = `Value 2: ${tooltipData[0].formattedValue}`;
+            } else {
+                tooltip.style.visibility = 'hidden';
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>

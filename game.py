@@ -1,16 +1,15 @@
-"""Code-generation arm: does feature-salad priming change the 70B's game code?
+"""Code-generation arm: does feature-salad priming change the 70B's code?
 
-For a target game, the 70B writes a single self-contained HTML/Canvas file two ways:
+For a target, the 70B writes a single self-contained HTML file two ways (shared seed,
+so only the priming differs):
   A (cold)   : just the task.
-  B (primed) : same task, prepended with ~50 terms about building a polished version
-               (mechanics, physics, UI/UX, game feel, scoring, AI, code structure).
-A and B share a seed, so only the priming differs. Unlike the QA runs there is no
-ground truth, but code is partially objective: both files are RUN (headless) to check
-they load without errors, and a blind LLM panel judges quality/design/UX. See
-results/games/<target>.md.
+  B (primed) : same task, prepended with ~50 terms about building a polished version.
+Unlike the QA runs there is no ground truth, but code is partially objective: both files
+are RUN (headless) to check they load without errors, and a blind LLM panel judges
+quality / design / UX. See results/games/<target>.md.
 
 Usage:
-  CF_API_TOKEN=... CF_ACCOUNT_ID=... python game.py [--target pong]
+  CF_API_TOKEN=... CF_ACCOUNT_ID=... python game.py --target tetris   # or: --target all
 Output: results/games/<target>_A.html, <target>_B.html, <target>_salad.json
 """
 import argparse
@@ -25,16 +24,24 @@ SEED = 4242
 
 TARGETS = {
     "pong": "Pong game. Player vs CPU, scoring, keyboard controls.",
-    "tetris": "Tetris game. Falling tetrominoes, rotation, line clears, scoring, levels.",
+    "tetris": "Tetris game with falling tetrominoes, rotation, line clears, scoring, "
+              "levels, and a next-piece preview.",
+    "markdown": "Markdown editor web app with a live preview pane, a formatting toolbar, "
+                "and a word count.",
+    "dashboard": "interactive data dashboard that visualizes a small built-in sample "
+                 "dataset with at least two chart types, a filter control, and tooltips.",
+    "sortviz": "sorting-algorithm visualizer with multiple algorithms (bubble, quick, "
+               "merge), animated bars, a speed control, and a shuffle button.",
 }
 
 
-def salad(target_desc):
+def salad(desc):
     raw = cf.run(MODEL, [{"role": "user", "content":
         f"List 50 single words or short phrases relevant to building a polished, "
-        f"high-quality {target_desc} — mechanics, physics, collision, UI/UX, game "
-        f"feel/juice, sound, scoring, AI, code structure. Output ONLY a comma-separated "
-        f"list, no numbering."}], max_tokens=240, temperature=0.8, seed=11)
+        f"high-quality version of this: {desc} Cover UX, interactivity, visual design, "
+        f"state management, edge cases, accessibility, performance, and code structure. "
+        f"Output ONLY a comma-separated list, no numbering."}],
+        max_tokens=240, temperature=0.8, seed=11)
     return [t.strip() for t in raw.replace("\n", ",").split(",") if t.strip()][:50]
 
 
@@ -45,31 +52,37 @@ def _clean(code):
     return code.strip()
 
 
-def generate(target_desc, terms=None):
-    task = (f"Create a complete, polished {target_desc} as a SINGLE self-contained HTML "
-            f"file (HTML + CSS + JavaScript using <canvas>). Output ONLY the HTML file "
-            f"content, nothing else.")
+def generate(desc, terms=None):
+    task = (f"Create a complete, polished version of the following as a SINGLE "
+            f"self-contained HTML file (HTML + CSS + JavaScript, canvas where "
+            f"appropriate): {desc} Output ONLY the HTML file content, nothing else.")
     content = ("Relevant terms: " + ", ".join(terms) + "\n\n" + task) if terms else task
     return _clean(cf.run(MODEL, [{"role": "user", "content": content}],
                          max_tokens=6000, temperature=0.6, seed=SEED))
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--target", default="pong", choices=list(TARGETS))
-    args = ap.parse_args()
-    desc = TARGETS[args.target]
+def build(target):
+    desc = TARGETS[target]
     terms = salad(desc)
     A = generate(desc)
     B = generate(desc, terms)
     os.makedirs("results/games", exist_ok=True)
-    open(f"results/games/{args.target}_A.html", "w").write(A)
-    open(f"results/games/{args.target}_B.html", "w").write(B)
-    json.dump({"terms": terms}, open(f"results/games/{args.target}_salad.json", "w"), indent=2)
-    for name, code in (("A cold", A), ("B primed", B)):
-        print(f"{name}: {len(code)} chars, ~{code.count(chr(10))+1} lines, "
-              f"complete={code.rstrip().endswith('</html>')}")
-    print(f"saved results/games/{args.target}_*.html")
+    open(f"results/games/{target}_A.html", "w").write(A)
+    open(f"results/games/{target}_B.html", "w").write(B)
+    json.dump({"terms": terms}, open(f"results/games/{target}_salad.json", "w"), indent=2)
+    print(f"[{target}] salad={len(terms)} | "
+          f"A {A.count(chr(10))+1}L complete={A.rstrip().endswith('</html>')} | "
+          f"B {B.count(chr(10))+1}L complete={B.rstrip().endswith('</html>')}")
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--target", default="pong")
+    args = ap.parse_args()
+    targets = [t for t in TARGETS if t != "pong"] if args.target == "all" else [args.target]
+    for t in targets:
+        build(t)
+    print("done:", ", ".join(targets))
 
 
 if __name__ == "__main__":

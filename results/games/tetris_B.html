@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #game-container {
+            width: 400px;
+            height: 500px;
+            border: 1px solid black;
+            margin: 20px auto;
+        }
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            border: 1px solid black;
+        }
+        #next-piece-container {
+            width: 100px;
+            height: 100px;
+            border: 1px solid black;
+            margin: 20px auto;
+        }
+        #score-container {
+            margin: 20px auto;
+        }
+        #level-container {
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas" width="400" height="500"></canvas>
+    </div>
+    <div id="next-piece-container">
+        <canvas id="next-piece-canvas" width="100" height="100"></canvas>
+    </div>
+    <div id="score-container">
+        Score: <span id="score">0</span>
+    </div>
+    <div id="level-container">
+        Level: <span id="level">1</span>
+    </div>
+    <script>
+        // Get the canvas elements
+        const gameCanvas = document.getElementById('game-canvas');
+        const nextPieceCanvas = document.getElementById('next-piece-canvas');
+        const scoreSpan = document.getElementById('score');
+        const levelSpan = document.getElementById('level');
+
+        // Set the canvas context
+        const gameCtx = gameCanvas.getContext('2d');
+        const nextPieceCtx = nextPieceCanvas.getContext('2d');
+
+        // Define the tetrominoes
+        const tetrominoes = [
+            // I-piece
+            [
+                [1, 1, 1, 1]
+            ],
+            // J-piece
+            [
+                [1, 0, 0],
+                [1, 1, 1]
+            ],
+            // L-piece
+            [
+                [0, 0, 1],
+                [1, 1, 1]
+            ],
+            // O-piece
+            [
+                [1, 1],
+                [1, 1]
+            ],
+            // S-piece
+            [
+                [0, 1, 1],
+                [1, 1, 0]
+            ],
+            // T-piece
+            [
+                [0, 1, 0],
+                [1, 1, 1]
+            ],
+            // Z-piece
+            [
+                [1, 1, 0],
+                [0, 1, 1]
+            ]
+        ];
+
+        // Define the grid size
+        const gridSize = 10;
+
+        // Define the grid
+        let grid = new Array(gridSize).fill(0).map(() => new Array(gridSize).fill(0));
+
+        // Define the current piece
+        let currentPiece = {
+            type: Math.floor(Math.random() * tetrominoes.length),
+            x: gridSize / 2,
+            y: 0,
+            rotation: 0
+        };
+
+        // Define the next piece
+        let nextPiece = {
+            type: Math.floor(Math.random() * tetrominoes.length),
+            x: 0,
+            y: 0,
+            rotation: 0
+        };
+
+        // Define the score and level
+        let score = 0;
+        let level = 1;
+
+        // Define the game speed
+        let gameSpeed = 1000;
+
+        // Define the game loop
+        function gameLoop() {
+            // Clear the grid
+            grid = new Array(gridSize).fill(0).map(() => new Array(gridSize).fill(0));
+
+            // Draw the current piece
+            drawPiece(currentPiece, gameCtx);
+
+            // Draw the next piece
+            drawPiece(nextPiece, nextPieceCtx);
+
+            // Update the score and level
+            scoreSpan.textContent = score;
+            levelSpan.textContent = level;
+
+            // Check for collisions
+            checkCollisions();
+
+            // Check for line clears
+            checkLineClears();
+
+            // Update the current piece
+            updatePiece();
+
+            // Request the next frame
+            setTimeout(gameLoop, gameSpeed);
+        }
+
+        // Define the draw piece function
+        function drawPiece(piece, ctx) {
+            // Get the tetromino
+            const tetromino = tetrominoes[piece.type];
+
+            // Rotate the tetromino
+            const rotatedTetromino = rotateTetromino(tetromino, piece.rotation);
+
+            // Draw the tetromino
+            for (let i = 0; i < rotatedTetromino.length; i++) {
+                for (let j = 0; j < rotatedTetromino[i].length; j++) {
+                    if (rotatedTetromino[i][j] === 1) {
+                        ctx.fillStyle = 'black';
+                        ctx.fillRect((piece.x + j) * 20, (piece.y + i) * 20, 20, 20);
+                    }
+                }
+            }
+        }
+
+        // Define the rotate tetromino function
+        function rotateTetromino(tetromino, rotation) {
+            // Rotate the tetromino
+            let rotatedTetromino = tetromino;
+            for (let i = 0; i < rotation; i++) {
+                rotatedTetromino = rotateTetromino90(rotatedTetromino);
+            }
+            return rotatedTetromino;
+        }
+
+        // Define the rotate tetromino 90 function
+        function rotateTetromino90(tetromino) {
+            // Rotate the tetromino 90 degrees
+            const rotatedTetromino = new Array(tetromino[0].length).fill(0).map(() => new Array(tetromino.length).fill(0));
+            for (let i = 0; i < tetromino.length; i++) {
+                for (let j = 0; j < tetromino[i].length; j++) {
+                    rotatedTetromino[j][tetromino.length - 1 - i] = tetromino[i][j];
+                }
+            }
+            return rotatedTetromino;
+        }
+
+        // Define the check collisions function
+        function checkCollisions() {
+            // Get the tetromino
+            const tetromino = tetrominoes[currentPiece.type];
+
+            // Rotate the tetromino
+            const rotatedTetromino = rotateTetromino(tetromino, currentPiece.rotation);
+
+            // Check for collisions
+            for (let i = 0; i < rotatedTetromino.length; i++) {
+                for (let j = 0; j < rotatedTetromino[i].length; j++) {
+                    if (rotatedTetromino[i][j] === 1) {
+                        if (currentPiece.x + j < 0 || currentPiece.x + j >= gridSize || currentPiece.y + i >= gridSize) {
+                            // Collision detected
+                            currentPiece.y = gridSize - rotatedTetromino.length;
+                            updateGrid();
+                        } else if (grid[currentPiece.y + i][currentPiece.x + j] === 1) {
+                            // Collision detected
+                            currentPiece.y = gridSize - rotatedTetromino.length;
+                            updateGrid();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Define the check line clears function
+        function checkLineClears() {
+            // Check for line clears
+            for (let i = 0; i < gridSize; i++) {
+                let lineClear = true;
+                for (let j = 0; j < gridSize; j++) {
+                    if (grid[i][j] === 0) {
+                        lineClear = false;
+                        break;
+                    }
+                }
+                if (lineClear) {
+                    // Line clear detected
+                    score += 100;
+                    level += 1;
+                    gameSpeed -= 100;
+                    grid.splice(i, 1);
+                    grid.unshift(new Array(gridSize).fill(0));
+                }
+            }
+        }
+
+        // Define the update piece function
+        function updatePiece() {
+            // Update the current piece
+            currentPiece.y += 1;
+
+            // Check if the piece has reached the bottom
+            if (currentPiece.y >= gridSize) {
+                // Update the grid
+                updateGrid();
+
+                // Get a new piece
+                currentPiece = nextPiece;
+                nextPiece = {
+                    type: Math.floor(Math.random() * tetrominoes.length),
+                    x: gridSize / 2,
+                    y: 0,
+                    rotation: 0
+                };
+            }
+        }
+
+        // Define the update grid function
+        function updateGrid() {
+            // Get the tetromino
+            const tetromino = tetrominoes[currentPiece.type];
+
+            // Rotate the tetromino
+            const rotatedTetromino = rotateTetromino(tetromino, currentPiece.rotation);
+
+            // Update the grid
+            for (let i = 0; i < rotatedTetromino.length; i++) {
+                for (let j = 0; j < rotatedTetromino[i].length; j++) {
+                    if (rotatedTetromino[i][j] === 1) {
+                        grid[currentPiece.y + i - 1][currentPiece.x + j] = 1;
+                    }
+                }
+            }
+        }
+
+        // Define the handle input function
+        function handleInput(event) {
+            // Handle the input
+            if (event.key === 'ArrowLeft') {
+                // Move the piece left
+                currentPiece.x -= 1;
+            } else if (event.key === 'ArrowRight') {
+                // Move the piece right
+                currentPiece.x += 1;
+            } else if (event.key === 'ArrowDown') {
+                // Move the piece down
+                currentPiece.y += 1;
+            } else if (event.key === 'ArrowUp') {
+                // Rotate the piece
+                currentPiece.rotation += 1;
+            }
+        }
+
+        // Add the event listener
+        document.addEventListener('keydown', handleInput);
+
+        // Start the game loop
+        gameLoop();
+    </script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Data Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .filter-control {
+            margin-bottom: 20px;
+        }
+        
+        .chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        
+        .chart {
+            width: 45%;
+            margin: 10px;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            font-size: 14px;
+            visibility: hidden;
+        }
+        
+        .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: #fff transparent transparent transparent;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Interactive Data Dashboard</h1>
+        <div class="filter-control">
+            <label for="filter">Filter:</label>
+            <select id="filter" onchange="updateCharts()">
+                <option value="all">All</option>
+                <option value="category1">Category 1</option>
+                <option value="category2">Category 2</option>
+            </select>
+        </div>
+        <div class="chart-container">
+            <div class="chart">
+                <canvas id="bar-chart" width="400" height="200"></canvas>
+                <div class="tooltip" id="bar-chart-tooltip"></div>
+            </div>
+            <div class="chart">
+                <canvas id="line-chart" width="400" height="200"></canvas>
+                <div class="tooltip" id="line-chart-tooltip"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample dataset
+        const dataset = [
+            { category: "Category 1", value: 10 },
+            { category: "Category 1", value: 20 },
+            { category: "Category 2", value: 30 },
+            { category: "Category 2", value: 40 },
+            { category: "Category 1", value: 50 },
+            { category: "Category 2", value: 60 },
+        ];
+
+        // Filter function
+        function filterData(filterValue) {
+            if (filterValue === "all") {
+                return dataset;
+            } else {
+                return dataset.filter((data) => data.category === filterValue);
+            }
+        }
+
+        // Update charts function
+        function updateCharts() {
+            const filterValue = document.getElementById("filter").value;
+            const filteredData = filterData(filterValue);
+            updateBarChart(filteredData);
+            updateLineChart(filteredData);
+        }
+
+        // Update bar chart function
+        function updateBarChart(data) {
+            const ctx = document.getElementById("bar-chart").getContext("2d");
+            const chart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: data.map((d) => d.category),
+                    datasets: [{
+                        label: "Values",
+                        data: data.map((d) => d.value),
+                        backgroundColor: "rgba(255, 99, 132, 0.2)",
+                        borderColor: "rgba(255, 99, 132, 1)",
+                        borderWidth: 1,
+                    }],
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                        },
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: (tooltipItem, data) => {
+                                return `Value: ${tooltipItem.yLabel}`;
+                            },
+                        },
+                    },
+                },
+            });
+
+            // Add tooltip event listener
+            ctx.canvas.addEventListener("mousemove", (e) => {
+                const tooltip = document.getElementById("bar-chart-tooltip");
+                const rect = ctx.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const index = chart.getElementAtEvent(e)[0].index;
+                if (index !== undefined) {
+                    tooltip.style.visibility = "visible";
+                    tooltip.style.top = `${y}px`;
+                    tooltip.style.left = `${x}px`;
+                    tooltip.innerHTML = `Value: ${chart.data.datasets[0].data[index]}`;
+                } else {
+                    tooltip.style.visibility = "hidden";
+                }
+            });
+        }
+
+        // Update line chart function
+        function updateLineChart(data) {
+            const ctx = document.getElementById("line-chart").getContext("2d");
+            const chart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: data.map((d) => d.category),
+                    datasets: [{
+                        label: "Values",
+                        data: data.map((d) => d.value),
+                        backgroundColor: "rgba(54, 162, 235, 0.2)",
+                        borderColor: "rgba(54, 162, 235, 1)",
+                        borderWidth: 1,
+                    }],
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                        },
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: (tooltipItem, data) => {
+                                return `Value: ${tooltipItem.yLabel}`;
+                            },
+                        },
+                    },
+                },
+            });
+
+            // Add tooltip event listener
+            ctx.canvas.addEventListener("mousemove", (e) => {
+                const tooltip = document.getElementById("line-chart-tooltip");
+                const rect = ctx.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const index = chart.getElementAtEvent(e)[0].index;
+                if (index !== undefined) {
+                    tooltip.style.visibility = "visible";
+                    tooltip.style.top = `${y}px`;
+                    tooltip.style.left = `${x}px`;
+                    tooltip.innerHTML = `Value: ${chart.data.datasets[0].data[index]}`;
+                } else {
+                    tooltip.style.visibility = "hidden";
+                }
+            });
+        }
+
+        // Initialize charts
+        updateCharts();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>
