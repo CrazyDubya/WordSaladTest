@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pong Game</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #000;
+    }
+    canvas {
+      border: 1px solid #000;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <script>
+    class Game {
+      let score = 0;
+      let cpuScore = 0;
+      let playerScore = 0;
+      let ballX = 400;
+      let ballY = 300;
+      let ballSpeedX = 5;
+      let ballSpeedY = 5;
+      let ballSize = 20;
+      let ballSpeed = 5;
+      let playerX = 100;
+      let playerY = 300;
+      let playerSpeed = 5;
+      let cpuX = 700;
+      let cpuY = 300;
+      let cpuSpeed = 5;
+      let opponentX = 100;
+      let opponentY = 500;
+      let opponentSpeed = 5;
+      let gravity = 0.05;
+      let scoreInterval = 2000;
+      let flag = false;
+      let isGameWon = false;
+      let isGameLost = false;
+      let cpuWins = 0;
+      let playerWins = 0;
+      let cpuWins = 0;
+      let playerScoreDisplay = document.getElementById('scoreDisplay');
+      let cpuScoreDisplay = document.getElementById('cpuScoreDisplay');
+      let highScores = [];
+      let highScore = 0;
+
+      updateScoreDisplay() {
+        let highScoreElement = document.getElementById('highScore');
+        if (score > highScore) {
+          highScore = score;
+          highScoreDisplay.textContent = `High Score: ${score}`;
+        }
+        if (cpuScore > highScore) {
+          highScore = cpuScore;
+          highScoreDisplay.textContent = `High Score: ${cpuScore}`;
+        }
+        if (playerScore > highScore) {
+          highScore = playerScore;
+          highScoreDisplay.textContent = `High Score: ${playerScore}`;
+        }
+        cpuScoreDisplay.textContent = `CPU Score: ${cpuScore}`;
+        playerScoreDisplay.textContent = `Player Score: ${playerScore}`;
+      }
+
+      updateHighScores() {
+        let highScoreElement = document.getElementById('highScore');
+        let highScoresElement = document.getElementById('highScores');
+        highScoresElement.innerHTML = '';
+        for (let i = 0; i < highScores.length; i++) {
+          let highScoreElement = document.createElement('p');
+          highScoreElement.textContent = highScores[i].score;
+          highScoresElement.appendChild(highScoreElement);
+        }
+        if (score > highScore) {
+          highScores.push({ score: score });
+          highScores.sort((a, b) => b.score - a.score);
+          highScoresElement.appendChild(document.createElement('p').textContent = `High Score: ${highScores[0].score}`);
+        }
+      }
+
+      updateGameInterval() {
+        if (isGameLost) {
+          cpuWins++;
+          cpuScoreDisplay.textContent = `CPU Score: ${cpuWins}`;
+          cpuScoreDisplay.textContent = `Player Score: ${playerWins}`;
+          alert(`Game over! CPU wins!`);
+        }
+        if (isGameWon) {
+          playerWins++;
+          playerScoreDisplay.textContent = `Player Score: ${playerWins}`;
+          playerScoreDisplay.textContent = `CPU Score: ${cpuWins}`;
+          alert(`Game over! Player wins!`);
+        }
+        if (score > 100) {
+          isGameWon = true;
+        } else if (cpuScore > 100) {
+          isGameLost = true;
+        }
+        requestAnimationFrame(updateHighScores);
+        requestAnimationFrame(updateGameInterval);
+      }
+
+      update() {
+        if (flag) {
+          ballX -= ballSpeed;
+        } else {
+          ballX += ballSpeed;
+        }
+        if (ballX < 0 || ballX > 700) {
+          ballSpeedX *= -1;
+        }
+        if (ballX === 400) {
+          if (flag) {
+            ballX = 400;
+            flag = false;
+          } else {
+            ballX = 400;
+            flag = true;
+            cpuY = 300;
+          }
+        }
+        if (ballY < 0) {
+          ballSpeedY *= -1;
+        }
+        if (ballY === 600) {
+          if (flag) {
+            ballY = 600;
+            flag = false;
+          } else {
+            ballY = 600;
+            flag = true;
+            cpuY = 300;
+          }
+        }
+
+        if (ballX < 0) {
+          cpuScore++;
+          cpuScoreDisplay.textContent = `CPU Score: ${cpuScore}`;
+          cpuX = 700;
+          cpuY = 300;
+          cpuSpeed = 5;
+          cpuWins++;
+          cpuScoreDisplay.textContent = `CPU Score: ${cpuWins}`;
+          cpuX = 700;
+          cpuY = 300;
+          cpuSpeed = 5;
+        }
+
+        if (ballY < 0) {
+          playerScore++;
+          playerScoreDisplay.textContent = `Player Score: ${playerScore}`;
+          playerX = 100;
+          playerY = 300;
+          playerSpeed = 5;
+          playerWins++;
+          playerScoreDisplay.textContent = `Player Score: ${playerWins}`;
+          playerX = 100;
+          playerY = 300;
+          playerSpeed = 5;
+        }
+
+        if (ballX === 400) {
+          if (flag) {
+            ballX = 400;
+            flag = false;
+          } else {
+            ballX = 400;
+            flag = true;
+            cpuY = 300;
+          }
+        }
+        if (ballY === 600) {
+          if (flag) {
+            ballY = 600;
+            flag = false;
+          } else {
+            ballY = 600;
+            flag = true;
+            cpuY = 300;
+          }
+        }
+
+        requestAnimationFrame(update);
+      }
+
+      draw() {
+        if (flag) {
+          ctx.fillStyle = 'red';
+          ctx.fillRect(0, 0, 800, 600);
+          ctx.fillStyle = 'black';
+          ctx.beginPath();
+          ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = 'black';
+          ctx.fillRect(0, 0, 800, 600);
+          ctx.fillStyle = 'white';
+          ctx.beginPath();
+          ctx.arc(opponentX, opponentY, ballSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.fillStyle = 'black';
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`Score: ${score}`, 400, 20);
+        ctx.fillText(`CPU Score: ${cpuScore}`, 400, 60);
+        ctx.fillText(`Player Score: ${playerScore}`, 400, 110);
+        ctx.fillText(`CPU Wins: ${cpuWins}`, 400, 190);
+        ctx.fillText(`Player Wins: ${playerWins}`, 400, 250);
+      }
+
+      drawCanvas() {
+        let ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, 800, 600);
+        draw();
+      }
+
+      updateGameInterval();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') {
+        playerY -= 5;
+        if (playerY < 0) {
+          playerY = 0;
+        }
+      } else if (e.key === 'ArrowDown') {
+        playerY += 5;
+        if (playerY > 600) {
+          playerY = 600;
+        }
+      }
+      if (e.key === 'ArrowLeft') {
+        playerX -= 5;
+        if (playerX < 0) {
+          playerX = 0;
+        }
+      } else if (e.key === 'ArrowRight') {
+        playerX += 5;
+        if (playerX > 700) {
+          playerX = 700;
+        }
+      }
+    });
+
+    let intervalId = setInterval(() => {
+      Game.update();
+      Game.drawCanvas();
+    }, 16);
+
+    document.addEventListener('keydown', () => {
+      if (e.key === 'Space') {
+        flag = true;
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'Space') {
+        flag = false;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 600px;
+            height: 400px;
+            border: 1px solid #fff;
+            margin: 50px auto;
+        }
+        
+        #scoreboard {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            color: #fff;
+        }
+        
+        #paddle1 {
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            width: 10px;
+            height: 100%;
+            background-color: #fff;
+            cursor: pointer;
+        }
+        
+        #paddle2 {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            width: 10px;
+            height: 100%;
+            background-color: #fff;
+            cursor: pointer;
+        }
+        
+        #ball {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas" width="600" height="400"></canvas>
+        <div id="scoreboard">
+            <span id="score1">0</span> - <span id="score2">0</span>
+        </div>
+        <div id="paddle1"></div>
+        <div id="paddle2"></div>
+    </div>
+    
+    <script>
+        // Get the canvas element
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set the canvas dimensions
+        canvas.width = 600;
+        canvas.height = 400;
+        
+        // Define game variables
+        let ballX = canvas.width / 2;
+        let ballY = canvas.height / 2;
+        let ballSpeedX = 5;
+        let ballSpeedY = 5;
+        let paddle1Y = canvas.height / 2;
+        let paddle2Y = canvas.height / 2;
+        let score1 = 0;
+        let score2 = 0;
+        
+        // Draw the game
+        function draw() {
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw the scoreboard
+            ctx.font = '24px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText(`Score: ${score1} - ${score2}`, 10, 10);
+            
+            // Draw the paddles
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, paddle1Y - 50, 10, 100);
+            ctx.fillRect(canvas.width - 10, paddle2Y - 50, 10, 100);
+            
+            // Draw the ball
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, 10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw the score
+            ctx.font = '48px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText(score1, 10, 80);
+            ctx.fillText(score2, canvas.width - 10, 80);
+        }
+        
+        // Handle keyboard input
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'w' && paddle1Y > 0) {
+                paddle1Y -= 10;
+            } else if (e.key === 's' && paddle1Y < canvas.height - 100) {
+                paddle1Y += 10;
+            }
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp' && paddle2Y > 0) {
+                paddle2Y -= 10;
+            } else if (e.key === 'ArrowDown' && paddle2Y < canvas.height - 100) {
+                paddle2Y += 10;
+            }
+        });
+        
+        // Handle collision with paddles
+        function checkCollision(paddleY, paddleWidth, paddleHeight, ballX, ballY, ballSpeedX, ballSpeedY) {
+            if (ballX + 10 > paddleX && ballX - 10 < paddleX + paddleWidth && ballY + 10 > paddleY && ballY - 10 < paddleY + paddleHeight) {
+                ballSpeedX = -ballSpeedX;
+            }
+        }
+        
+        // Handle collision with walls
+        function checkWallCollision(ballX, ballY, ballSpeedX, ballSpeedY) {
+            if (ballY - 10 < 0) {
+                ballSpeedY = -ballSpeedY;
+            } else if (ballY + 10 > canvas.height) {
+                ballSpeedY = -ballSpeedY;
+            }
+            
+            if (ballX - 10 < 0) {
+                ballSpeedX = -ballSpeedX;
+            } else if (ballX + 10 > canvas.width) {
+                ballSpeedX = -ballSpeedX;
+            }
+        }
+        
+        // Main game loop
+        function gameLoop() {
+            // Update ball position
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+            
+            // Check collision with paddles
+            checkCollision(paddle1Y, 10, 100, ballX, ballY, ballSpeedX, ballSpeedY);
+            checkCollision(paddle2Y, 10, 100, ballX, ballY, ballSpeedX, ballSpeedY);
+            
+            // Check collision with walls
+            checkWallCollision(ballX, ballY, ballSpeedX, ballSpeedY);
+            
+            // Update score
+            if (ballX < 0) {
+                score2++;
+                ballX = canvas.width / 2;
+                ballY = canvas.height / 2;
+                ballSpeedX = 5;
+                ballSpeedY = 5;
+            } else if (ballX > canvas.width) {
+                score1++;
+                ballX = canvas.width / 2;
+                ballY = canvas.height / 2;
+                ballSpeedX = 5;
+                ballSpeedY = 5;
+            }
+            
+            // Draw the game
+            draw();
+            
+            // Request the next frame
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Start the game
+        gameLoop();
+    </script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game</title>
+    <style>
+        /* Add some basic styling to our game */
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pong-canvas" width="640" height="480"></canvas>
+    <script>
+        // Get the canvas element
+        const canvas = document.getElementById('pong-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set the canvas dimensions
+        const width = canvas.width;
+        const height = canvas.height;
+
+        // Define some constants
+        const PADDLE_WIDTH = 10;
+        const PADDLE_HEIGHT = 60;
+        const BALL_SIZE = 10;
+        const CPU_PADDLE_SPEED = 5;
+        const PLAYER_PADDLE_SPEED = 5;
+        const BALL_SPEED = 5;
+
+        // Initialize the game state
+        let playerPaddle = { x: width / 2 - PADDLE_WIDTH / 2, y: height - PADDLE_HEIGHT - 20, velocity: 0, direction: 0 };
+        let cpuPaddle = { x: width / 2 - PADDLE_WIDTH / 2, y: height / 2 - PADDLE_HEIGHT / 2, velocity: 0, direction: 0 };
+        let ball = { x: width / 2, y: height / 2, velocityX: BALL_SPEED, velocityY: BALL_SPEED };
+        let score = { player: 0, cpu: 0 };
+        let gameStarted = false;
+
+        // Draw the paddles
+        function drawPaddles() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(playerPaddle.x, playerPaddle.y, PADDLE_WIDTH, PADDLE_HEIGHT);
+            ctx.fillRect(cpuPaddle.x, cpuPaddle.y, PADDLE_WIDTH, PADDLE_HEIGHT);
+        }
+
+        // Draw the ball
+        function drawBall() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(ball.x, ball.y, BALL_SIZE, BALL_SIZE);
+        }
+
+        // Draw the score
+        function drawScore() {
+            ctx.font = '48px Arial';
+            ctx.fillStyle = 'white';
+            ctx.fillText(`Player: ${score.player}`, 10, 10);
+            ctx.fillText(`CPU: ${score.cpu}`, width - 10, 10);
+        }
+
+        // Update the game state
+        function update() {
+            // Move the paddles
+            if (gameStarted) {
+                playerPaddle.x += playerPaddle.velocity;
+                cpuPaddle.x += cpuPaddle.velocity;
+
+                // Keep the paddles on the screen
+                if (playerPaddle.x < 0) playerPaddle.x = 0;
+                if (playerPaddle.x > width - PADDLE_WIDTH) playerPaddle.x = width - PADDLE_WIDTH;
+                if (cpuPaddle.x < 0) cpuPaddle.x = 0;
+                if (cpuPaddle.x > width - PADDLE_WIDTH) cpuPaddle.x = width - PADDLE_WIDTH;
+
+                // Move the ball
+                ball.x += ball.velocityX;
+                ball.y += ball.velocityY;
+
+                // Bounce the ball off the top and bottom walls
+                if (ball.y < 0) {
+                    ball.velocityY = -ball.velocityY;
+                }
+                if (ball.y > height - BALL_SIZE) {
+                    ball.velocityY = -ball.velocityY;
+                }
+
+                // Bounce the ball off the paddles
+                if (ball.x < PADDLE_WIDTH + BALL_SIZE && ball.y > playerPaddle.y && ball.y < playerPaddle.y + PADDLE_HEIGHT) {
+                    ball.velocityX = -ball.velocityX;
+                }
+                if (ball.x > width - PADDLE_WIDTH - BALL_SIZE && ball.y > cpuPaddle.y && ball.y < cpuPaddle.y + PADDLE_HEIGHT) {
+                    ball.velocityX = -ball.velocityX;
+                }
+
+                // Check for a hit
+                if (ball.x < 0 || ball.x > width - BALL_SIZE) {
+                    if (ball.x < 0) {
+                        score.cpu++;
+                        resetBall();
+                    } else {
+                        score.player++;
+                        resetBall();
+                    }
+                }
+            }
+        }
+
+        // Reset the ball
+        function resetBall() {
+            ball.x = width / 2;
+            ball.y = height / 2;
+            ball.velocityX = BALL_SPEED;
+            ball.velocityY = BALL_SPEED;
+            gameStarted = true;
+        }
+
+        // Handle keyboard input
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') {
+                playerPaddle.direction = -1;
+            }
+            if (e.key === 'ArrowDown') {
+                playerPaddle.direction = 1;
+            }
+            if (e.key === 'ArrowLeft') {
+                cpuPaddle.direction = -1;
+            }
+            if (e.key === 'ArrowRight') {
+                cpuPaddle.direction = 1;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                playerPaddle.direction = 0;
+            }
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                cpuPaddle.direction = 0;
+            }
+        });
+
+        // Main game loop
+        function loop() {
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw the paddles
+            drawPaddles();
+
+            // Draw the ball
+            drawBall();
+
+            // Draw the score
+            drawScore();
+
+            // Update the game state
+            update();
+
+            // Check if the game is over
+            if (score.player >= 11 || score.cpu >= 11) {
+                gameStarted = false;
+                alert(`Game Over! Final Score: Player - ${score.player}, CPU - ${score.cpu}`);
+            }
+
+            // Request the next frame
+            requestAnimationFrame(loop);
+        }
+
+        // Start the game
+        loop();
+
+        // Initialize the CPU paddle
+        cpuPaddle.velocity = CPU_PADDLE_SPEED;
+        cpuPaddle.direction = 0;
+
+        // Start the game
+        gameStarted = true;
+        loop();
+    </script>
+</body>
+</html>
