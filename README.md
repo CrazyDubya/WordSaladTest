@@ -75,8 +75,10 @@ The whole run is well under ~$1 in Workers AI usage.
 | `grade.py` | answer-letter extraction, Wilson CI, exact McNemar |
 | `run.py` | main loop, checkpoint/resume, report generation |
 
-Cross-model experiment: `cross.py` (3B answers using the 70B's salads). Per-item records and
-generated reports are in `results/`.
+Cross-model / cross-author experiments: `cross.py` (a weak model answers using a *stronger* model's
+salad — vary `--answerer`) and the Claude-authored sweep written up in
+[`results/cross_author.md`](results/cross_author.md). Per-item records and generated reports are in
+`results/`.
 
 ## Results
 
@@ -145,15 +147,43 @@ helping a weak one). But it appears **only** when the answerer has a real knowle
 fact (OpenBookQA, where even the 1B sees no benefit from the richer salad). The 3B null was a
 masked case: the 3B already knew the commonsense answers, so a better salad filled no gap.
 
-**Overall verdict.** Related-term priming is a **knowledge-gap crutch** with three gates: it helps
-only where (1) the model is knowledge-limited (net benefit at 1B; neutral by 3B; inert at 70B), (2)
-the terms are *relevant* (related beats a matched placebo up to 8B, gone at the 70B ceiling), and
-(3) — for salad *quality* to matter — the task rewards breadth of association. Hit all three (1B ×
-CommonsenseQA × 70B-authored salad) and you get a double-digit gain; miss any one and the effect
-shrinks to neutral. Priming a capable model is neutral at best.
+**A frontier author confirms it — and the benefit reaches further than "only the 1B."** Sweeping a
+*Claude Opus 4.8*-authored salad (same 50-term spec, choices withheld) across **all four** answerers
+on a 500-item sample ([`results/cross_author.md`](results/cross_author.md)) separates two effects
+with **two different decays**:
 
-All per-item records are in [`results/`](results/): `raw.jsonl` (main run), `cross_3b.jsonl` /
-`cross_1b.jsonl` (cross-salad), plus generated `report.md` / `summary.json` / `cross_<tag>_report.md`.
+| answerer | Claude salad − control | Claude salad − model's *own* salad |
+|----------|------------------------|------------------------------------|
+| 1B  | **+.10 / +.15** (sig)        | **+.10** CSQA (sig) |
+| 3B  | +.03 / +.04 (ns)             | +.03 (ns)           |
+| 8B  | **+.06 / +.09** (sig)        | +.04 (marginal)     |
+| 70B | ~0 (ceiling)                 | ~0                  |
+
+- **Borrow-a-salad** (strong salad vs *no* salad) helps **any non-saturated** answerer — significant
+  at the 1B **and the 8B**, gone only at the 70B ceiling. It is killed by **headroom**, not by
+  answerer strength: Claude's salad lifts the 8B *where the 8B's own salad never did* (main-run B−A
+  was ns at the 8B).
+- **Author premium** (strong salad vs the model's *own*) is large only where the model can't write a
+  good salad itself — +.10 at the 1B, fading to marginal by the 8B, zero at the 70B.
+
+This **revises** the "knowledge-gap crutch, only the 1B" read above: *self*-authored priming does
+only help the 1B, but a *borrowed* strong salad keeps paying off up to the 8B. Who writes the salad
+matters most exactly where the answerer is least able to write a good one itself.
+
+**Overall verdict.** Related-term priming is a **knowledge-gap crutch** gated by three things — and
+*who writes the salad* is a fourth, separate lever. It helps where (1) the answerer has **headroom**
+(a *self*-authored salad nets positive only at the 1B; a *borrowed strong* salad keeps helping up to
+the 8B; both inert at the 70B ceiling), (2) the terms are **relevant** (related beats a matched
+placebo up to 8B, gone at 70B), and (3) the task rewards **breadth of association** (commonsense >
+one-fact retrieval). Stack them — knowledge-starved answerer × commonsense task × frontier-authored
+salad — for a double-digit gain; relax any one and it shrinks toward neutral. Priming a *capable*
+model with its *own* salad is neutral at best; the only thing that still moves an 8B is a salad
+written by something stronger.
+
+All per-item records are in [`results/`](results/): `raw.jsonl` (main run), `cross_1b.jsonl` /
+`cross_3b.jsonl` (70B-authored cross-salad, full benchmark), `cross_{1b,3b,8b,70b}_claude.jsonl`
+(Claude-authored sweep, 500-item sample — see [`cross_author.md`](results/cross_author.md)), plus
+generated `report.md` / `summary.json` / `cross_<tag>_report.md`.
 
 ## Creative-writing coda (no ground truth — qualitative)
 
