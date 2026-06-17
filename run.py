@@ -26,6 +26,7 @@ MODELS = {
     "llama-3.2-1b": "@cf/meta/llama-3.2-1b-instruct",
     "llama-3.2-3b": "@cf/meta/llama-3.2-3b-instruct",
     "llama-3.1-8b": "@cf/meta/llama-3.1-8b-instruct-fp8",
+    "llama-3.3-70b": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
 }
 BENCHMARKS = ["openbookqa", "commonsenseqa"]
 ARMS = ["A", "B", "C"]

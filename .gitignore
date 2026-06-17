@@ -1,5 +1,5 @@
-# experiment outputs (final, committed)
-results/run.log
+# experiment outputs (final, committed) — but not the run logs
+results/*.log
 
 __pycache__/
 *.pyc

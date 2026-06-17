@@ -68,3 +68,25 @@ Arms: **A** direct · **B** related-term salad · **C** placebo (count/position-
 
 - **A→B** (does the salad help vs control): B fixed 39, broke 29 (of 500 paired); McNemar p = 0.2750
 - **C→B** (does relevance beat a matched placebo): B fixed 58, broke 28 (of 500 paired); McNemar p = 0.0016
+
+## @cf/meta/llama-3.3-70b-instruct-fp8-fast — commonsenseqa
+
+| arm | n | acc | 95% CI | parse-fail |
+|---|---|---|---|---|
+| A | 1221 | 0.839 | [0.818, 0.859] | 0 |
+| B | 1221 | 0.826 | [0.804, 0.847] | 1 |
+| C | 1221 | 0.824 | [0.802, 0.844] | 0 |
+
+- **A→B** (does the salad help vs control): B fixed 42, broke 58 (of 1221 paired); McNemar p = 0.1332
+- **C→B** (does relevance beat a matched placebo): B fixed 77, broke 74 (of 1221 paired); McNemar p = 0.8708
+
+## @cf/meta/llama-3.3-70b-instruct-fp8-fast — openbookqa
+
+| arm | n | acc | 95% CI | parse-fail |
+|---|---|---|---|---|
+| A | 500 | 0.934 | [0.909, 0.953] | 1 |
+| B | 500 | 0.920 | [0.893, 0.941] | 0 |
+| C | 500 | 0.904 | [0.875, 0.927] | 7 |
+
+- **A→B** (does the salad help vs control): B fixed 12, broke 19 (of 500 paired); McNemar p = 0.2810
+- **C→B** (does relevance beat a matched placebo): B fixed 27, broke 19 (of 500 paired); McNemar p = 0.3020

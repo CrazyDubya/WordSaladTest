@@ -34,7 +34,7 @@ Shi et al., ICML 2023, [arXiv:2302.00093](https://arxiv.org/abs/2302.00093)).
 ## Setup
 
 - **Models:** `@cf/meta/llama-3.2-1b-instruct`, `@cf/meta/llama-3.2-3b-instruct`,
-  `@cf/meta/llama-3.1-8b-instruct-fp8`
+  `@cf/meta/llama-3.1-8b-instruct-fp8`, `@cf/meta/llama-3.3-70b-instruct-fp8-fast`
 - **Benchmarks:** OpenBookQA (`allenai/openbookqa`, test, 500) and CommonsenseQA
   (`tau/commonsense_qa`, validation, 1,221) — both auto-graded by exact answer-letter match.
 - **Scoring:** accuracy with Wilson 95% CIs; paired **McNemar** exact test for A-vs-B and
@@ -75,45 +75,72 @@ The whole run is well under ~$1 in Workers AI usage.
 | `grade.py` | answer-letter extraction, Wilson CI, exact McNemar |
 | `run.py` | main loop, checkpoint/resume, report generation |
 
-Results (`results/raw.jsonl`, `summary.json`, `report.md`) are committed once the full run
-completes.
+Cross-model experiment: `cross.py` (3B answers using the 70B's salads). Per-item records and
+generated reports are in `results/`.
 
 ## Results
 
-Full run: 3 models × 2 benchmarks × 3 arms = **15,489 graded answers** (paired per item),
-0.05% answer-parse failures, salads averaging 36 terms. Accuracy and exact paired McNemar p:
+Main run: **4 models × 2 benchmarks × 3 arms = 20,652 graded answers** (paired per item),
+0.05% parse failures. Accuracy and exact paired McNemar p:
 
 | model | benchmark | n | A (ctrl) | B (salad) | C (placebo) | B−A (p) | B−C (p) | C−A |
 |-------|-----------|---|---------|-----------|-------------|---------|---------|-----|
-| 1B | OpenBookQA    |  500 | .354 | **.444** | .350 | **+.090** (.0000) | **+.094** (.0000) | −.004 |
-| 1B | CommonsenseQA | 1221 | .387 | **.417** | .375 | **+.030** (.0148) | **+.042** (.0006) | −.011 |
-| 3B | OpenBookQA    |  500 | .748 | .768 | .708 | +.020 (.275) | **+.060** (.0016) | −.040 |
-| 3B | CommonsenseQA | 1221 | .736 | .732 | .702 | −.004 (.780) | **+.030** (.0122) | −.034 |
-| 8B | OpenBookQA    |  500 | .774 | .802 | .748 | +.028 (.109) | **+.054** (.0045) | −.026 |
-| 8B | CommonsenseQA | 1221 | .752 | .750 | .712 | −.002 (.944) | **+.038** (.0021) | −.040 |
+| 1B  | OpenBookQA    |  500 | .354 | **.444** | .350 | **+.090** (.0000) | **+.094** (.0000) | −.004 |
+| 1B  | CommonsenseQA | 1221 | .387 | **.417** | .375 | **+.030** (.0148) | **+.042** (.0006) | −.011 |
+| 3B  | OpenBookQA    |  500 | .748 | .768 | .708 | +.020 (.275) | **+.060** (.0016) | −.040 |
+| 3B  | CommonsenseQA | 1221 | .736 | .732 | .702 | −.004 (.780) | **+.030** (.0122) | −.034 |
+| 8B  | OpenBookQA    |  500 | .774 | .802 | .748 | +.028 (.109) | **+.054** (.0045) | −.026 |
+| 8B  | CommonsenseQA | 1221 | .752 | .750 | .712 | −.002 (.944) | **+.038** (.0021) | −.040 |
+| 70B | OpenBookQA    |  500 | .934 | .920 | .904 | −.014 (.281) | +.016 (.302) | −.030 |
+| 70B | CommonsenseQA | 1221 | .839 | .826 | .824 | −.013 (.133) | +.002 (.871) | −.015 |
 
-**Three findings:**
+**Priming is a knowledge-gap crutch — it has a life cycle in model scale:**
 
-1. **Relevance beats a matched placebo in every cell** (B−C significant, p .0000–.0122). Since
-   C is count- and position-matched to B, the gain is the *content* of the terms — not the extra
-   tokens or shifted position. The confound is ruled out.
+| scale | accuracy | priming vs control (B−A) | relevance vs placebo (B−C) |
+|-------|----------|--------------------------|----------------------------|
+| 1B    | ~.37 | **helps** (+3 to +9, sig) | **significant** |
+| 3B / 8B | ~.75 | neutral | **significant** (placebo drags) |
+| 70B   | ~.84–.93 | slightly negative | **gone** (ns on both) |
 
-2. **Priming beats plain answering (B−A) only for the 1B model** (significant on both benchmarks).
-   At 3B and 8B it is null (p .11–.94). Self-generated keyword priming helps *only the smallest
-   model* — consistent with knowledge augmentation: small models lack the knowledge and the terms
-   supply it; larger models already have it.
+1. **Relevance beats a matched placebo at every scale up to 8B** (B−C significant, p .0000–.0122) —
+   but **vanishes at 70B** (p .30 / .87). Since C is count- and position-matched to B, where the gap
+   exists it is the *content* of the terms, not the extra tokens. At the 70B ceiling there is no gap
+   to exploit.
 
-3. **Irrelevant priming hurts, and more so with scale** — the placebo sits below control in all six
-   cells (C−A from −.004 at 1B to −.040 at 8B). That is why B−C stays significant even where B−A is
-   null: at 3B/8B the salad is neutral (B ≈ A) but the random words drag accuracy down (C < A).
+2. **Priming beats plain answering (B−A) only for the 1B model.** Null at 3B/8B, slightly negative at
+   70B. Self-generated keyword priming helps *only* a knowledge-starved model; as parametric
+   knowledge fills in, the benefit fades, then the preamble becomes pure noise.
 
-**Verdict.** The hypothesis — related-term priming "activates relevant pathways" and improves
-answers — holds for *net* benefit **only on the smallest model**. The relevance signal itself is
-real and robust at every scale (related terms always beat random ones), but a measurable gain over
-simply answering exists only where the model is knowledge-limited. For capable models, priming is
-neutral at best, and the *wrong* priming is a real drag.
+3. **Irrelevant priming hurts up to 8B** (placebo below control, C−A −.004 → −.040), but even that
+   distraction **disappears at 70B** — a capable model ignores the preamble entirely and answers
+   from its own knowledge.
 
-Raw per-item records, the generated `report.md`, and `summary.json` are in [`results/`](results/).
+### Cross-model salad — does a *stronger* model's salad help a weaker answerer?
+
+Generated Knowledge Prompting (Liu et al. 2022) found big-model *knowledge* helps small models more
+than their own. We tested the keyword-salad version: the **3B** answers primed with the **70B's**
+salad (arm **X**), vs its own arms. See [`cross.py`](cross.py) / [`results/cross_report.md`](results/cross_report.md).
+
+| benchmark | A ctrl | B 3B-own | X 70B-salad | C placebo | X−B (p) | X−A (p) | X−C (p) |
+|-----------|--------|----------|-------------|-----------|---------|---------|---------|
+| OpenBookQA    | .748 | .768 | .774 | .708 | +.006 (.78) | +.026 (.16) | **+.066** (.0003) |
+| CommonsenseQA | .736 | .732 | .741 | .702 | +.009 (.42) | +.005 (.73) | **+.039** (.0014) |
+
+The 70B salads were genuinely different — longer (53 vs 35 terms), broader, **11% term overlap**
+(Jaccard 0.11) with the 3B's own — yet they gave the 3B **no significant lift over its own salad**
+(X−B ≈ +.01, p .4–.8). They still beat the random placebo (X−C significant), so relevance holds; but
+**salad *quality* is not the lever.** The bottleneck is the answerer's capacity to use the
+priming, not how good the terms are — the 3B already knows most of these answers, so richer terms
+fill no gap.
+
+**Overall verdict.** Related-term priming "activates relevant pathways" only in the narrow regime
+where the model is *knowledge-limited*. The relevance signal is real where there's headroom (related
+beats random up to 8B), but the *net* gain over simply answering exists only on the smallest model,
+and a *better* salad from a stronger model does not change that. Priming a capable model is neutral
+at best.
+
+All per-item records are in [`results/`](results/): `raw.jsonl` (main run), `cross.jsonl`
+(cross-salad), plus generated `report.md` / `summary.json` / `cross_report.md` / `cross_summary.json`.
 
 ## License
 
